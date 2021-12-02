@@ -57,7 +57,7 @@ def main(args):
     print(msg)
 
     # tweet = api.update_status(msg)
-    tweet = client.create_tweet(msg)
+    tweet = client.create_tweet(text=msg)
     print(tweet)
 
 
