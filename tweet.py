@@ -17,20 +17,25 @@ ACCESS_SECRET = os.environ.get('ACCESS_SECRET')
 
 header = {"EN": "Dear @EU_Commission, today is",
           "ES": "Querida @ComisionEuropea, hoy es",
-          "DE": "Liebe @EUinDE, heute ist"}
+          "DE": "Liebe @EUinDE, heute ist",
+          "FR": "Chère @UEFrance, nous sommes aujourd'hui"}
 
 weekdays = {"EN": ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),
             "ES": ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"),
-            "DE": ("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")}
+            "DE": ("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"),
+            "FR": ("lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche")}
 
-numerals = ["", "1st", "2nd", "3rd", "4th"]
-advent_week = {"EN": lambda d: f"of the {numerals[d]} week of Advent.",
+ordinal_en = ["", "1st", "2nd", "3rd", "4th"]
+ordinal_fr = ["", "1ère", "2ème", "3ème", "4ème"]
+advent_week = {"EN": lambda d: f"of the {ordinal_en[d]} week of Advent.",
                "ES": lambda d: f"de la {d}ª semana de Adviento.",
-               "DE": lambda d: f"{d}. Advent."}
+               "DE": lambda d: f"{d}. Advent.",
+               "FR": lambda d: f"de la {ordinal_fr[d]} semaine de l'Avent."}
 
 remaining = {"EN": lambda d: f"Only {d} days left to wish you a #MerryChristmas",
              "ES": lambda d: f"Faltan {d} días para desearos una muy #FelizNavidad",
-             "DE": lambda d: f"Es sind nur noch {d} Tage, bis man Ihnen #FroheWeihnachten wünschen kannn",}
+             "DE": lambda d: f"Es sind nur noch {d} Tage, um Ihnen #FroheWeihnachten zu wünschen.",
+             "FR": lambda d: f"Plus que {d} jours pour vous souhaiter un #JoyeuxNoël"}
 
 today = dt.date(dt.now())
 year = today.year
@@ -49,11 +54,26 @@ third_advent = fourth_advent - td(days=7)
 second_advent = third_advent - td(days=7)
 first_advent = second_advent - td(days=7)
 
-celebrations = {first_advent: {"ES": "1er domingo de Adviento."},
-                second_advent: {"ES": "2º domingo de Adviento."},
-                third_advent: {"ES": "3er domingo de Adviento."},
-                fourth_advent: {"ES": "4º domingo de Adviento."},
-                dt.date(dt(year=year, month=12, day=24)): {"ES": "Nochebuena."},
+celebrations = {first_advent: {"ES": "1er domingo de Adviento.",
+                               "EN": "1st Sunday of Advent.",
+                               "DE": "1. Advent.",
+                               "FR": "1er dimanche de l'Avent."},
+                second_advent: {"ES": "2º domingo de Adviento.",
+                                "EN": "2nd Sunday of Advent.",
+                                "DE": "2. Advent.",
+                                "FR": "2ème dimanche de l'Avent."},
+                third_advent: {"ES": "3er domingo de Adviento.",
+                               "EN": "3rd Sunday of Advent.",
+                               "DE": "3. Advent.",
+                               "FR": "3ème dimanche de l'Avent."},
+                fourth_advent: {"ES": "4º domingo de Adviento.",
+                                "EN": "4th Sunday of Advent.",
+                                "DE": "4. Advent.",
+                                "FR": "4ème dimanche de l'Avent."},
+                dt.date(dt(year=year, month=12, day=24)): {"ES": "Nochebuena.",
+                                                           "EN": "Christmas Eve.",
+                                                           "DE": "Heiligabend.",
+                                                           "FR": "Réveillon de Noël."},
                 christmas: {"ES": "Navidad"},
                 epiphany: {"ES": "Epifanía, día de los Reyes Magos"},
                 baptism: {"ES": "domingo, día del Bautizo del Señor"},
