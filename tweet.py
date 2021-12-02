@@ -142,25 +142,26 @@ def main(args):
     """
     Command-line entrypoint to post a tweet message to Twitter.
     """
-    if not args:
-        print("Provide a message on the CLI as the first argument.")
-        print("It must be a single string. Multiple lines are allowed.")
 
-        sys.exit(1)
-
-    lang = get_language()
+    print("The date is:")
+    print(now)
+    
+    if not args or not args[0]:
+        lang = get_language()
+    else:
+        lang = args[0]
     print(f"Writing tweet in {lang}")
 
     msg = write_tweet(lang)
 
-    # api = setup_conn()
-    client = get_client()
+    api = setup_conn()
+    # client = get_client()
 
     print(f"Tweeting message:")
     print(msg)
 
-    # tweet = api.update_status(msg)
-    tweet = client.create_tweet(text=msg)
+    tweet = api.update_status(msg)
+    # tweet = client.create_tweet(text=msg)
     print(tweet)
 
 
