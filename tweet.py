@@ -5,8 +5,11 @@ Minimal script to post a tweet to the Twitter API using a given message.
 """
 import os
 import sys
+from pathlib import Path
 from datetime import datetime as dt, timedelta as td
 from random import seed, shuffle
+import json
+import urllib.request
 
 import tweepy
 
@@ -82,21 +85,26 @@ celebrations = {first_advent: {"ES": "1er domingo de Adviento.",
                 candlemas: {"ES": "Fiesta de la Candelaria"}}
 celeb_days = celebrations.keys()
 
+special_pics = {christmas: "christmas"} # TODO
+special_pic_days = special_pics.keys()
+
 scheduled_hours = (7, 11, 15, 19)
 languages = ["EN", "ES", "DE", "FR"]
 
+assert len(scheduled_hours) == len(languages), "Scheduled hours and languages do not coincide in length"
 
-def get_language():
-    date_seed = today.year * 1e4 + today.month * 1e2 + today.day
-    seed(date_seed)
-    shuffle(languages)
-
+def get_index():
     hour = now.hour
     try:
-        lang_index = scheduled_hours.index(hour)
+        return scheduled_hours.index(hour)
     except ValueError as ve:
         print(f"Unexpected hour: {hour}. Scheduled hours are {scheduled_hours}")
         raise ve
+
+def get_language(lang_index):
+    date_seed = today.year * 1e4 + today.month * 1e2 + today.day
+    seed(date_seed)
+    shuffle(languages)
 
     return languages[lang_index]
 
@@ -110,15 +118,15 @@ def setup_conn():
 
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
-    
+
     return tweepy.API(auth)
 
 
 def get_client():
-    
+
     assert all((CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)), \
         "All credentials must be set"
-    
+
     return tweepy.Client(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_token=ACCESS_KEY, access_token_secret=ACCESS_SECRET)
 
 
@@ -138,6 +146,32 @@ def write_tweet(lang="ES"):
         print("Christmas Season is over :(")
 
 
+def get_pic(index):
+    if today in special_pic_days:
+        pic_pool = Path.cwd()/"pics"/special_pics[today]
+    else:
+        pic_pool = Path.cwd()/"pics"/"normal.json"
+    with open(pic_pool, "r") as rf:
+        pic_list = json.load(rf)
+
+    pic_len = len(pic_list)
+
+    seed(year)
+    shuffle(pic_list)
+
+    pic_index = ((today - first_advent).days * len(scheduled_hours) + index) % pic_len
+    return pic_list[pic_index]
+
+
+def download_pic(url):
+    ext = Path(url).suffix
+    pic_fname = f"pic{ext}"
+    r = urllib.request.urlopen(url)
+    with open(pic_fname, 'wb') as f:
+        f.write(r.read())
+    return pic_fname
+
+
 def main(args):
     """
     Command-line entrypoint to post a tweet message to Twitter.
@@ -145,22 +179,31 @@ def main(args):
 
     print("The date is:")
     print(now)
-    
+
     if not args or not args[0]:
-        lang = get_language()
+        index = get_index()
+        lang = get_language(index)
     else:
+        index = 0
         lang = args[0]
     print(f"Writing tweet in {lang}")
 
     msg = write_tweet(lang)
+    pic_url = get_pic(index)
 
     api = setup_conn()
     # client = get_client()
 
+    print("Trying to download the following image:")
+    print(pic_url)
+    pic_fname = download_pic(pic_url)
+    print("uploading pic...")
+    media_id = api.simple_upload(pic_fname)
+
     print(f"Tweeting message:")
     print(msg)
 
-    tweet = api.update_status(msg)
+    tweet = api.update_status(msg, media_ids=[media_id])
     # tweet = client.create_tweet(text=msg)
     print(tweet)
 
