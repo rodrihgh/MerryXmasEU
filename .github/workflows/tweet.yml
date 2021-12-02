@@ -3,6 +3,11 @@ name: Tweet
 on:
   schedule:
     - cron: "5 8,12,16,20 * * *"
+  workflow_dispatch:
+    inputs:
+      msg:
+        description: Tweet language
+        required: true
 
 jobs:
   tweet:
@@ -38,4 +43,9 @@ jobs:
           CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
           ACCESS_KEY:      ${{ secrets.ACCESS_KEY }}
           ACCESS_SECRET:   ${{ secrets.ACCESS_SECRET }}
-        run: python tweet.py
+        run: |
+          MSG=$(cat <<EOF
+          ${{ github.event.inputs.msg }}
+          EOF
+          )
+          python tweet.py "$MSG"
