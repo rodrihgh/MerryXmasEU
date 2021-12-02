@@ -82,7 +82,7 @@ celebrations = {first_advent: {"ES": "1er domingo de Adviento.",
                 candlemas: {"ES": "Fiesta de la Candelaria"}}
 celeb_days = celebrations.keys()
 
-scheduled_hours = (8, 11, 16, 20)
+scheduled_hours = (7, 11, 15, 19)
 languages = ["EN", "ES", "DE", "FR"]
 
 
