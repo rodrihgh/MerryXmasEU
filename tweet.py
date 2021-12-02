@@ -6,6 +6,7 @@ Minimal script to post a tweet to the Twitter API using a given message.
 import os
 import sys
 from datetime import datetime as dt, timedelta as td
+from random import seed, shuffle
 
 import tweepy
 
@@ -37,7 +38,8 @@ remaining = {"EN": lambda d: f"Only {d} days left to wish you a #MerryChristmas"
              "DE": lambda d: f"Es sind nur noch {d} Tage, um Ihnen #FroheWeihnachten zu wünschen.",
              "FR": lambda d: f"Plus que {d} jours pour vous souhaiter un #JoyeuxNoël"}
 
-today = dt.date(dt.now())
+now = dt.now()
+today = dt.date(now)
 year = today.year
 if today.month < 3:
     year -= 1
@@ -79,6 +81,24 @@ celebrations = {first_advent: {"ES": "1er domingo de Adviento.",
                 baptism: {"ES": "domingo, día del Bautizo del Señor"},
                 candlemas: {"ES": "Fiesta de la Candelaria"}}
 celeb_days = celebrations.keys()
+
+scheduled_hours = (8, 12, 16, 20)
+languages = ["EN", "ES", "DE", "FR"]
+
+
+def get_language():
+    date_seed = today.year * 1e4 + today.month * 1e2 + today.day
+    seed(date_seed)
+    shuffle(languages)
+
+    hour = now.hour
+    try:
+        lang_index = scheduled_hours.index(hour)
+    except ValueError as ve:
+        print(f"Unexpected hour: {hour}. Scheduled hours are {scheduled_hours}")
+        raise ve
+
+    return languages[lang_index]
 
 
 def setup_conn():
@@ -128,10 +148,10 @@ def main(args):
 
         sys.exit(1)
 
-    index = int(args[0])
-    print(f"Index {index} was received")
+    lang = get_language()
+    print(f"Writing tweet in {lang}")
 
-    msg = write_tweet()
+    msg = write_tweet(lang)
 
     # api = setup_conn()
     client = get_client()
@@ -140,8 +160,8 @@ def main(args):
     print(msg)
 
     # tweet = api.update_status(msg)
-    # todo tweet = client.create_tweet(text=msg)
-    # print(tweet)
+    tweet = client.create_tweet(text=msg)
+    print(tweet)
 
 
 if __name__ == "__main__":
