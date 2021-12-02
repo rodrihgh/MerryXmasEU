@@ -2,10 +2,6 @@ name: Tweet
 
 on:
   workflow_dispatch:
-    inputs:
-      msg:
-        description: Tweet message
-        required: true
 
 jobs:
   tweet:
