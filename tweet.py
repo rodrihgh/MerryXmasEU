@@ -198,12 +198,13 @@ def main(args):
     print(pic_url)
     pic_fname = download_pic(pic_url)
     print("uploading pic...")
-    media_id = api.simple_upload(pic_fname)
+    media = api.simple_upload(pic_fname)
+    print(media)
 
     print(f"Tweeting message:")
     print(msg)
 
-    tweet = api.update_status(msg, media_ids=[media_id])
+    tweet = api.update_status(msg, media_ids=[media.media_id])
     # tweet = client.create_tweet(text=msg)
     print(tweet)
 
