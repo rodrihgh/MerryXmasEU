@@ -15,13 +15,22 @@ CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
 ACCESS_KEY = os.environ.get('ACCESS_KEY')
 ACCESS_SECRET = os.environ.get('ACCESS_SECRET')
 
-header = {"ES": "Querida _CE_, hoy es"}
+header = {"EN": "Dear @EU_Commission, today is",
+          "ES": "Querida @ComisionEuropea, hoy es",
+          "DE": "Liebe @EUinDE, heute ist"}
 
-weekdays = {"ES": ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")}
+weekdays = {"EN": ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),
+            "ES": ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"),
+            "DE": ("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag")}
 
-advent_week = {"ES": lambda d: f"de la {d}ª semana de Adviento."}
+numerals = ["", "1st", "2nd", "3rd", "4th"]
+advent_week = {"EN": lambda d: f"of the {numerals[d]} week of Advent.",
+               "ES": lambda d: f"de la {d}ª semana de Adviento.",
+               "DE": lambda d: f"{d}. Advent."}
 
-remaining = {"ES": lambda d: f"Faltan {d} días para desearos una muy _FelizNavidad"}
+remaining = {"EN": lambda d: f"Only {d} days left to wish you a #MerryChristmas",
+             "ES": lambda d: f"Faltan {d} días para desearos una muy #FelizNavidad",
+             "DE": lambda d: f"Es sind nur noch {d} Tage, bis man Ihnen #FroheWeihnachten wünschen kannn",}
 
 today = dt.date(dt.now())
 year = today.year
