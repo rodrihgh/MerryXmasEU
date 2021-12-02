@@ -33,7 +33,7 @@ ordinal_en = ["", "1st", "2nd", "3rd", "4th"]
 ordinal_fr = ["", "1ère", "2ème", "3ème", "4ème"]
 advent_week = {"EN": lambda d: f"of the {ordinal_en[d]} week of Advent.",
                "ES": lambda d: f"de la {d}ª semana de Adviento.",
-               "DE": lambda d: f"{d}. Advent.",
+               "DE": lambda d: f"der {d}. Adventswoche.",
                "FR": lambda d: f"de la {ordinal_fr[d]} semaine de l'Avent."}
 
 remaining = {"EN": lambda d: f"Only {d} days left to wish you a #MerryChristmas",
