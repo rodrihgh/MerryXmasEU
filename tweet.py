@@ -128,6 +128,9 @@ def main(args):
 
         sys.exit(1)
 
+    index = int(args[0])
+    print(f"Index {index} was received")
+
     msg = write_tweet()
 
     # api = setup_conn()
@@ -137,8 +140,8 @@ def main(args):
     print(msg)
 
     # tweet = api.update_status(msg)
-    tweet = client.create_tweet(text=msg)
-    print(tweet)
+    # todo tweet = client.create_tweet(text=msg)
+    # print(tweet)
 
 
 if __name__ == "__main__":

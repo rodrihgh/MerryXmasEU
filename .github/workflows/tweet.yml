@@ -1,7 +1,19 @@
 name: Tweet
 
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: "47 10 * * *"
+      index: 0
+
+    - cron: "5 12 * * *"
+      index: 1
+
+    - cron: "5 16 * * *"
+      index: 2
+
+    - cron: "5 20 * * *"
+      index: 3
+
 
 jobs:
   tweet:
@@ -39,7 +51,7 @@ jobs:
           ACCESS_SECRET:   ${{ secrets.ACCESS_SECRET }}
         run: |
           MSG=$(cat <<EOF
-          ${{ github.event.inputs.msg }}
+          ${{ github.event.index }}
           EOF
           )
           python tweet.py "$MSG"
