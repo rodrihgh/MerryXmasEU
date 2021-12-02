@@ -1,0 +1,49 @@
+name: Tweet
+
+on:
+  workflow_dispatch:
+    inputs:
+      msg:
+        description: Tweet message
+        required: true
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v2
+
+      - name: Set up Python 🐍
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Cache Python packages
+        uses: actions/cache@v2 💾
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      - name: Install packages ⚙
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Use HEREDOC for run to escape possible single and double quotes in the message.
+      - name: Post tweet to Twitter 🐦
+        env:
+          CONSUMER_KEY:    ${{ secrets.CONSUMER_KEY }}
+          CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
+          ACCESS_KEY:      ${{ secrets.ACCESS_KEY }}
+          ACCESS_SECRET:   ${{ secrets.ACCESS_SECRET }}
+        run: |
+          MSG=$(cat <<EOF
+          ${{ github.event.inputs.msg }}
+          EOF
+          )
+          python tweet.py "$MSG"
