@@ -28,6 +28,14 @@ def setup_conn():
     return tweepy.API(auth)
 
 
+def get_client():
+    
+    assert all((CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)), \
+        "All credentials must be set"
+    
+    return tweepy.Client(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_token=ACCESS_KEY, access_token_secret=ACCESS_SECRET)
+
+
 def main(args):
     """
     Command-line entrypoint to post a tweet message to Twitter.
@@ -42,12 +50,14 @@ def main(args):
     if not msg:
         print("Message must not be an empty value")
 
-    api = setup_conn()
+    # api = setup_conn()
+    client = get_client()
 
     print(f"Tweeting message:")
     print(msg)
 
-    tweet = api.update_status(msg)
+    # tweet = api.update_status(msg)
+    tweet = Client.create_tweet(msg)
     print(tweet)
 
 
