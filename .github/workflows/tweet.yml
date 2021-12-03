@@ -44,8 +44,5 @@ jobs:
           ACCESS_KEY:      ${{ secrets.ACCESS_KEY }}
           ACCESS_SECRET:   ${{ secrets.ACCESS_SECRET }}
         run: |
-          MSG=$(cat <<EOF
-          ${{ github.event.inputs.msg }}
-          EOF
-          )
-          python tweet.py "$MSG"
+          python tweet.py ${{ github.event.inputs.msg }}
+ 
