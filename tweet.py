@@ -4,10 +4,9 @@ Tweet application.
 Minimal script to post a tweet to the Twitter API using a given message.
 """
 import os
-import sys
 from pathlib import Path
 from datetime import datetime as dt, timedelta as td
-from random import seed, shuffle
+from random import seed, shuffle, choice
 import json
 import urllib.request
 
@@ -19,10 +18,15 @@ CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
 ACCESS_KEY = os.environ.get('ACCESS_KEY')
 ACCESS_SECRET = os.environ.get('ACCESS_SECRET')
 
-header = {"EN": "Dear @EU_Commission, today is",
-          "ES": "Querida @ComisionEuropea, hoy es",
-          "DE": "Liebe @EUinDE, heute ist",
-          "FR": "Chère @UEFrance, nous sommes aujourd'hui"}
+header = {"EN": "Dear @EU_Commission,",
+          "ES": "Querida @ComisionEuropea,",
+          "DE": "Liebe @EUinDE,",
+          "FR": "Chère @UEFrance,"}
+
+today_is = {"EN": "today is",
+            "ES": "hoy es",
+            "DE": "heute ist",
+            "FR": "nous sommes aujourd'hui"}
 
 weekdays = {"EN": ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),
             "ES": ("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"),
@@ -41,51 +45,56 @@ remaining = {"EN": lambda d: f"Only {d} days left to wish you a #MerryChristmas"
              "DE": lambda d: f"Es sind nur noch {d} Tage, um Ihnen #FroheWeihnachten zu wünschen.",
              "FR": lambda d: f"Plus que {d} jours pour vous souhaiter un #JoyeuxNoël"}
 
+
+def early_months(date):
+    return date.month < 3
+
+
 now = dt.now()
-today = dt.date(now)
+today = now.date()
 year = today.year
-if today.month < 3:
+if early_months(today):
     year -= 1
 
-christmas = dt.date(dt(year=year, month=12, day=25))
+christmas = dt(year=year, month=12, day=25).date()
 xmas_weekday = christmas.weekday()
 
-epiphany = dt.date(dt(year=year+1, month=1, day=6))
-baptism = epiphany # TODO calculate next Sunday
-candlemas = dt.date(dt(year=year+1, month=2, day=2))
+epiphany = dt(year=year+1, month=1, day=6).date()
+baptism = epiphany  # TODO calculate next Sunday
+candlemas = dt(year=year+1, month=2, day=2).date()
 
 fourth_advent = christmas - td(days=(xmas_weekday+1))
 third_advent = fourth_advent - td(days=7)
 second_advent = third_advent - td(days=7)
 first_advent = second_advent - td(days=7)
 
-celebrations = {first_advent: {"ES": "1er domingo de Adviento.",
-                               "EN": "1st Sunday of Advent.",
-                               "DE": "1. Advent.",
-                               "FR": "1er dimanche de l'Avent."},
-                second_advent: {"ES": "2º domingo de Adviento.",
-                                "EN": "2nd Sunday of Advent.",
-                                "DE": "2. Advent.",
-                                "FR": "2ème dimanche de l'Avent."},
-                third_advent: {"ES": "3er domingo de Adviento.",
-                               "EN": "3rd Sunday of Advent.",
-                               "DE": "3. Advent.",
-                               "FR": "3ème dimanche de l'Avent."},
-                fourth_advent: {"ES": "4º domingo de Adviento.",
-                                "EN": "4th Sunday of Advent.",
-                                "DE": "4. Advent.",
-                                "FR": "4ème dimanche de l'Avent."},
-                dt.date(dt(year=year, month=12, day=24)): {"ES": "Nochebuena.",
-                                                           "EN": "Christmas Eve.",
-                                                           "DE": "Heiligabend.",
-                                                           "FR": "Réveillon de Noël."},
+celebrations = {first_advent: {"ES": "feliz 1er domingo de Adviento!",
+                               "EN": "happy 1st Sunday of Advent!",
+                               "DE": "schönen 1. Advent!",
+                               "FR": "bon 1er dimanche de l'Avent!"},
+                second_advent: {"ES": "feliz 2º domingo de Adviento!",
+                                "EN": "happy 2nd Sunday of Advent!",
+                                "DE": "schönen 2. Advent!",
+                                "FR": "bon 2ème dimanche de l'Avent!"},
+                third_advent: {"ES": "feliz 3er domingo de Adviento!",
+                               "EN": "happy 3rd Sunday of Advent!",
+                               "DE": "schönen 3. Advent!",
+                               "FR": "bon 3ème dimanche de l'Avent!"},
+                fourth_advent: {"ES": "feliz 4º domingo de Adviento!",
+                                "EN": "happy 4th Sunday of Advent!",
+                                "DE": "schönen 4. Advent!",
+                                "FR": "bon 4ème dimanche de l'Avent!"},
+                dt(year=year, month=12, day=24).date(): {"ES": "Nochebuena.",
+                                                         "EN": "Christmas Eve.",
+                                                         "DE": "Heiligabend.",
+                                                         "FR": "Réveillon de Noël."},
                 christmas: {"ES": "Navidad"},
                 epiphany: {"ES": "Epifanía, día de los Reyes Magos"},
                 baptism: {"ES": "domingo, día del Bautizo del Señor"},
-                candlemas: {"ES": "Fiesta de la Candelaria"}}
+                candlemas: {"ES": "Fiesta de la Candelaria"}}   # TODO complete list
 celeb_days = celebrations.keys()
 
-special_pics = {christmas: "christmas"} # TODO
+special_pics = {christmas: "christmas"}  # TODO
 special_pic_days = special_pics.keys()
 
 scheduled_hours = (7, 11, 15, 19)
@@ -93,13 +102,17 @@ languages = ["EN", "ES", "DE", "FR"]
 
 assert len(scheduled_hours) == len(languages), "Scheduled hours and languages do not coincide in length"
 
+
 def get_index():
     hour = now.hour
     try:
         return scheduled_hours.index(hour)
-    except ValueError as ve:
+    except ValueError:
         print(f"Unexpected hour: {hour}. Scheduled hours are {scheduled_hours}")
-        raise ve
+        index = choice(range(len(languages)))
+        print(f"Index {index} was randomly chosen")
+        return index
+
 
 def get_language(lang_index):
     date_seed = today.year * 1e4 + today.month * 1e2 + today.day
@@ -127,7 +140,8 @@ def get_client():
     assert all((CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)), \
         "All credentials must be set"
 
-    return tweepy.Client(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET, access_token=ACCESS_KEY, access_token_secret=ACCESS_SECRET)
+    return tweepy.Client(consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET,
+                         access_token=ACCESS_KEY, access_token_secret=ACCESS_SECRET)
 
 
 def write_tweet(lang="ES"):
@@ -137,7 +151,7 @@ def write_tweet(lang="ES"):
         else:
             weekday = weekdays[lang][today.weekday()]
             adv_week = (today - first_advent).days // 7 + 1
-            day_text = " ".join([weekday, advent_week[lang](adv_week)])
+            day_text = " ".join([today_is[lang], weekday, advent_week[lang](adv_week)])
         rem_days = (christmas - today).days
         return " ".join([header[lang], day_text, remaining[lang](rem_days)])
     elif christmas <= today <= candlemas:
@@ -172,7 +186,7 @@ def download_pic(url):
     return pic_fname
 
 
-def main(args):
+def main(lang=None, write=True):
     """
     Command-line entrypoint to post a tweet message to Twitter.
     """
@@ -180,34 +194,53 @@ def main(args):
     print("The date is:")
     print(now)
 
-    if not args or not args[0]:
+    if lang is None:
         index = get_index()
         lang = get_language(index)
     else:
         index = 0
-        lang = args[0]
     print(f"Writing tweet in {lang}")
 
     msg = write_tweet(lang)
     pic_url = get_pic(index)
 
-    api = setup_conn()
-    # client = get_client()
-
     print("Trying to download the following image:")
     print(pic_url)
     pic_fname = download_pic(pic_url)
-    print("uploading pic...")
-    media = api.simple_upload(pic_fname)
-    print(media)
 
     print(f"Tweeting message:")
     print(msg)
 
-    tweet = api.update_status(msg, media_ids=[media.media_id])
-    # tweet = client.create_tweet(text=msg)
-    print(tweet)
+    if write:
+        api = setup_conn()
+        # client = get_client()
+
+        print("uploading pic...")
+        media = api.simple_upload(pic_fname)
+        print(media)
+
+        tweet = api.update_status(msg, media_ids=[media.media_id])
+        # tweet = client.create_tweet(text=msg)
+        print(tweet)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Just a subversive Christmas bot.')
+
+    parser.add_argument("language", type=str, default=None, nargs="?", choices=languages,
+                        help="Language to write the tweet in.")
+    parser.add_argument("--day", "-d", type=str, default=None, help="Input the day as DD-MM")
+    parser.add_argument("--fake", "-f", action='store_true', help="Set to skip the actual tweet posting.")
+
+    args = parser.parse_args()
+
+    if args.day is not None:
+        year = dt.now().year
+        day = dt.strptime(args.day, "%d-%m")
+        if early_months(day):
+            year -= 1
+        today = dt(year, day.month, day.day).date()
+
+    main(lang=args.language, write=not args.fake)
