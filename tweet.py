@@ -223,8 +223,13 @@ def main(lang=None, index=0, reply=False, write=True):
         if reply:
             ue_statuses = api.user_timeline(screen_name=ue_handles[lang])
             # TODO
-            for status in ue_statuses:
-                print(status)
+            for i, status in enumerate(ue_statuses):
+                user = status.user.screen_name
+                created_at = status.created_at
+                print(f"Tweet #{i}:")
+                print(user)
+                print(created_at)
+                print("\n")
         else:
             tweet = api.update_status(msg, media_ids=[media.media_id])
             # tweet = client.create_tweet(text=msg)
