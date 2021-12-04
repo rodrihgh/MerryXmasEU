@@ -99,6 +99,7 @@ special_pic_days = special_pics.keys()
 
 scheduled_hours = (7, 11, 15, 19)
 languages = ["EN", "ES", "DE", "FR"]
+n_lang = len(languages)
 
 assert len(scheduled_hours) == len(languages), "Scheduled hours and languages do not coincide in length"
 
@@ -109,7 +110,7 @@ def get_index():
         return scheduled_hours.index(hour)
     except ValueError:
         print(f"Unexpected hour: {hour}. Scheduled hours are {scheduled_hours}")
-        index = choice(range(len(languages)))
+        index = choice(range(n_lang))
         print(f"Index {index} was randomly chosen")
         return index
 
@@ -160,7 +161,7 @@ def write_tweet(lang="ES"):
         print("Christmas Season is over :(")
 
 
-def get_pic(index):
+def get_pic(index, reverse=False):
     if today in special_pic_days:
         pic_pool = Path.cwd()/"pics"/special_pics[today]
     else:
@@ -173,7 +174,9 @@ def get_pic(index):
     seed(year)
     shuffle(pic_list)
 
-    pic_index = ((today - first_advent).days * len(scheduled_hours) + index) % pic_len
+    pic_index = ((today - first_advent).days * n_lang + index) % pic_len
+    if reverse:
+        pic_index = pic_len - 1 - pic_index
     return pic_list[pic_index]
 
 
@@ -186,7 +189,7 @@ def download_pic(url):
     return pic_fname
 
 
-def main(lang=None, write=True):
+def main(lang=None, index=0, reply=False, write=True):
     """
     Command-line entrypoint to post a tweet message to Twitter.
     """
@@ -195,14 +198,11 @@ def main(lang=None, write=True):
     print(now)
 
     if lang is None:
-        index = get_index()
         lang = get_language(index)
-    else:
-        index = 0
     print(f"Writing tweet in {lang}")
 
     msg = write_tweet(lang)
-    pic_url = get_pic(index)
+    pic_url = get_pic(index, reverse=reply)
 
     print("Trying to download the following image:")
     print(pic_url)
@@ -219,8 +219,11 @@ def main(lang=None, write=True):
         media = api.simple_upload(pic_fname)
         print(media)
 
-        tweet = api.update_status(msg, media_ids=[media.media_id])
-        # tweet = client.create_tweet(text=msg)
+        if reply:
+            raise NotImplementedError()     # TODO
+        else:
+            tweet = api.update_status(msg, media_ids=[media.media_id])
+            # tweet = client.create_tweet(text=msg)
         print(tweet)
 
 
@@ -232,7 +235,10 @@ if __name__ == "__main__":
     parser.add_argument("language", type=str, default=None, nargs="?", choices=languages,
                         help="Language to write the tweet in.")
     parser.add_argument("--day", "-d", type=str, default=None, help="Input the day as DD-MM")
+    parser.add_argument("--index", "-i", type=int, default=0, choices=range(n_lang),
+                        help=f"Index to select pic (and language if not set)")
     parser.add_argument("--fake", "-f", action='store_true', help="Set to skip the actual tweet posting.")
+    parser.add_argument("--reply", "-r", action='store_true', help="Set to reply to UE Commissions' latest tweet.")
 
     args = parser.parse_args()
 
@@ -243,4 +249,4 @@ if __name__ == "__main__":
             year -= 1
         today = dt(year, day.month, day.day).date()
 
-    main(lang=args.language, write=not args.fake)
+    main(lang=args.language, index=args.index, reply=args.reply, write=not args.fake)
