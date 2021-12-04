@@ -221,7 +221,7 @@ def main(lang=None, index=0, reply=False, write=True):
         print(media)
 
         if reply:
-            ue_statuses = api.user_timeline(ue_handles[lang])
+            ue_statuses = api.user_timeline(screen_name=ue_handles[lang])
             # TODO
             for status in ue_statuses:
                 print(status)
