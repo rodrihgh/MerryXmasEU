@@ -18,10 +18,11 @@ CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
 ACCESS_KEY = os.environ.get('ACCESS_KEY')
 ACCESS_SECRET = os.environ.get('ACCESS_SECRET')
 
-header = {"EN": "Dear @EU_Commission,",
-          "ES": "Querida @ComisionEuropea,",
-          "DE": "Liebe @EUinDE,",
-          "FR": "Chère @UEFrance,"}
+ue_handles = {"EN": "EU_Commission", "ES": "ComisionEuropea", "DE": "EUinDE", "FR": "UEFrance"}
+header = {"EN": f"Dear @{ue_handles['EN']},",
+          "ES": f"Querida @{ue_handles['ES']},",
+          "DE": f"Liebe @{ue_handles['DE']},",
+          "FR": f"Chère @{ue_handles['FR']},"}
 
 today_is = {"EN": "today is",
             "ES": "hoy es",
@@ -220,7 +221,10 @@ def main(lang=None, index=0, reply=False, write=True):
         print(media)
 
         if reply:
-            raise NotImplementedError()     # TODO
+            ue_statuses = api.user_timeline(ue_handles[lang])
+            # TODO
+            for status in ue_statuses:
+                print(status)
         else:
             tweet = api.update_status(msg, media_ids=[media.media_id])
             # tweet = client.create_tweet(text=msg)
