@@ -225,7 +225,7 @@ def main(lang=None, index=0, reply=False, write=True):
             ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
             reply_id = ue_statuses[0].id
             tweet_kwargs["in_reply_to_status_id"] = reply_id
-            tweet_kwargs["auto_populate_reply_metadata"] = True
+            tweet_kwargs["auto_populate_reply_metadata"] = False
         tweet = api.update_status(msg, **tweet_kwargs)
         # tweet = client.create_tweet(text=msg)
         print(tweet)
