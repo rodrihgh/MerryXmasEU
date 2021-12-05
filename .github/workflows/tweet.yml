@@ -50,6 +50,6 @@ jobs:
           CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
           ACCESS_KEY:      ${{ secrets.ACCESS_KEY }}
           ACCESS_SECRET:   ${{ secrets.ACCESS_SECRET }}
-          SCRIPT_ARGS: ${{ contains(github.event.schedule, ' 7') && '-i 0' || contains(github.event.schedule, ' 9') && '-i 0 -r' || contains(github.event.schedule, '11') && '-i 1' || contains(github.event.schedule, '13') && '-i 1 -r' || contains(github.event.schedule, '15') && '-i 2' || contains(github.event.schedule, '17') && '-i 2 -r' || contains(github.event.schedule, '19') && '-i 3' || contains(github.event.schedule, '21') && '-i 3 -r' || github.event.inputs.script_args }}
+          SCRIPT_ARGS: ${{ contains(github.event.schedule, ' 7') && '-i 0' || contains(github.event.schedule, ' 9') && '-i 2 -r' || contains(github.event.schedule, '11') && '-i 1' || contains(github.event.schedule, '13') && '-i 3 -r' || contains(github.event.schedule, '15') && '-i 2' || contains(github.event.schedule, '17') && '-i 0 -r' || contains(github.event.schedule, '19') && '-i 3' || contains(github.event.schedule, '21') && '-i 1 -r' || github.event.inputs.script_args }}
         run: |
           python tweet.py $SCRIPT_ARGS
