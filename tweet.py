@@ -9,6 +9,7 @@ from datetime import datetime as dt, timedelta as td
 from random import seed, shuffle
 import json
 import urllib.request
+import re
 
 import tweepy
 
@@ -190,8 +191,7 @@ celebrations = {first_advent: {"ES": "feliz 1er domingo de Adviento!",
                            }
 
                 # epiphany: {"ES": "Epifanía, día de los Reyes Magos"},
-                # baptism: {"ES": "domingo, día del Bautizo del Señor"}}
-                # candlemas: {"ES": "Fiesta de la Candelaria"}}   # TODO complete list
+                # baptism: {"ES": "domingo, día del Bautizo del Señor"}} # TODO complete list
                 }
 
 if nikolaus.weekday() != 6:
@@ -212,7 +212,18 @@ assert all(set(languages) == set(cel.keys())
 
 celeb_days = celebrations.keys()
 
-special_pics = {}  # {christmas: "christmas"}  # TODO
+special_pics = dict(
+    nikolaus="nikolaus.json",
+    xmas_eve="shepherds.json",
+    christmas="shepherds.json",
+    st_stephen="st_stephen.json",
+    epiphany_eve="magi.json",
+    epiphany="magi.json"
+)  # {baptism: "baptism.json"}  # TODO
+
+special_pics[holy_family] = "holy_family.json"
+special_pics[innocent] = "innocents.json"
+
 special_pic_days = special_pics.keys()
 
 
@@ -318,6 +329,15 @@ def download_pic(url):
     return pic_fname
 
 
+def original_pic_url(pic_url):
+    regex = r"(\/[\da-d]{2}\/)(.*)(\/)"
+    match = re.search(regex, pic_url)
+    if match:
+        return f"https://commons.wikimedia.org/wiki/File:{match.group(2)}"
+    else:
+        return pic_url
+
+
 def main(lang=None, index=0, reply=False, write=True):
     """
     Command-line entrypoint to post a tweet message to Twitter.
@@ -351,9 +371,11 @@ def main(lang=None, index=0, reply=False, write=True):
 
         print("uploading pic...")
         media = api.simple_upload(pic_fname)
+        media_id = media.media_id
+        api.create_media_metadata(media_id, alt_text=f"Image source: {original_pic_url(pic_url)}")
         print(media)
 
-        tweet_kwargs = {"media_ids": [media.media_id]}
+        tweet_kwargs = {"media_ids": [media_id]}
         if reply:
             ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
             reply_id = ue_statuses[0].id
