@@ -212,14 +212,14 @@ assert all(set(languages) == set(cel.keys())
 
 celeb_days = celebrations.keys()
 
-special_pics = dict(
-    nikolaus="nikolaus.json",
-    xmas_eve="shepherds.json",
-    christmas="shepherds.json",
-    st_stephen="st_stephen.json",
-    epiphany_eve="magi.json",
-    epiphany="magi.json"
-)  # {baptism: "baptism.json"}  # TODO
+special_pics = {
+    nikolaus: "nikolaus.json",
+    xmas_eve: "shepherds.json",
+    christmas: "shepherds.json",
+    st_stephen: "st_stephen.json",
+    epiphany_eve: "magi.json",
+    epiphany: "magi.json"
+}  # {baptism: "baptism.json"}  # TODO
 
 special_pics[holy_family] = "holy_family.json"
 special_pics[innocent] = "innocents.json"
