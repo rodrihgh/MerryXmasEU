@@ -160,8 +160,6 @@ epiphany = date(6, 1)
 
 epiphany_weekday = epiphany.weekday()
 
-baptism = epiphany + td(days=(5 - epiphany_weekday) % 7 + 1)  # Next Sunday
-
 fourth_advent = christmas - td(days=(xmas_weekday+1))
 third_advent = fourth_advent - td(days=7)
 second_advent = third_advent - td(days=7)
@@ -214,10 +212,17 @@ celebrations = {first_advent: {"ES": "feliz 1er domingo de Adviento!",
                            "FR": "la fête de Marie mère de Dieu pour l'Église catholique et "
                                  "la fête de la Circoncision de Jésus pour les Églises orthodoxe, anglicane "
                                  "et luthérienne. Nouvel an? Je n'en ai jamais entendu parler "
-                           }
-
-                # epiphany: {"ES": "Epifanía, día de los Reyes Magos"},
-                # baptism: {"ES": "domingo, día del Bautizo del Señor"}} # TODO complete list
+                           },
+                epiphany_eve: {"ES": "la Noche de Reyes, la 12ª Noche, Víspera de la Epifanía.",
+                               "EN": "the Twelfth Night, the Epiphany Eve.",
+                               "DE": "die Vigil vor der Epiphanie.",
+                               "FR": "la veille de l'Épiphanie."
+                               },
+                epiphany: {"ES": "el Día de los Reyes Magos, la Epifanía de Nuestro Señor.",
+                           "EN": "the Epiphany of the Lord, the Three Kings' Day.",
+                           "DE": "Dreikönigstag, die Epiphanie, das Hochfest der Erscheinung des Herrn.",
+                           "FR": "l'Épiphanie du Seigneur, le Jour des Rois."
+                           },
                 }
 
 nik_msg = {"ES": "feliz día de San Nicolás!",
@@ -250,7 +255,7 @@ celeb_days = celebrations.keys()
 
 special_pics = {nikolaus: "nikolaus.json", xmas_eve: "shepherds.json", christmas: "shepherds.json",
                 st_stephen: "st_stephen.json", epiphany_eve: "magi.json", epiphany: "magi.json",
-                holy_family: "holy_family.json", innocent: "innocents.json"}  # {baptism: "baptism.json"}  # TODO
+                holy_family: "holy_family.json", innocent: "innocents.json"}
 
 special_pic_days = special_pics.keys()
 
@@ -299,7 +304,7 @@ def write_tweet(lang="ES"):
         return join_message([header, merry_xmas, light, today_is, celebrations[today]], lang)
     elif today == new_year:
         return join_message([header, merry_xmas, today_is, celebrations[today]], lang)
-    elif christmas <= today <= baptism:
+    elif christmas <= today <= epiphany:
         xmas_d = (today - christmas).days + 1
         if today in celeb_days:
             day_text = [celebrations[today]]
