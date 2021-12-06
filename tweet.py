@@ -22,6 +22,8 @@ ACCESS_SECRET = os.environ.get('ACCESS_SECRET')
 languages = ["EN", "ES", "DE", "FR"]
 n_lang = len(languages)
 
+img_source = {"EN": "Image source\n", "ES": "Fuente de la imagen\n", "DE": "Bildquelle\n", "FR": "Source de l'image\n"}
+
 ue_handles = {"EN": "EU_Commission", "ES": "ComisionEuropea", "DE": "EUinDE", "FR": "UEFrance"}
 header = {"EN": f"Dear @{ue_handles['EN']},",
           "ES": f"Querida @{ue_handles['ES']},",
@@ -92,7 +94,8 @@ light = {"EN": "May the birth of Our Lord Jesus Christ enlighten our peoples in 
          "DE": "Möge die Geburt unseres Herrn Jesu Christi unsere Völker in Frieden und Gerechtigkeit erleuchten.",
          "FR": "Que la naissance de notre Sauveur Jésus-Christ éclaire nos peuples dans la paix et la justice."}
 
-phrases = (ue_handles, header, today_is, advent_week, remaining, xmas_days, merry_xmas, light) + weekdays
+phrases = (_and_, img_source, ue_handles, header, today_is,
+           advent_week, remaining, xmas_days, merry_xmas, light) + weekdays
 
 assert all(set(languages) == set(ph.keys()) for ph in phrases), "Some language missing among phrases"
 
@@ -352,10 +355,12 @@ def original_pic_url(pic_url):
         return pic_url
 
 
-def main(lang=None, index=0, reply=False, write=True):
+def main(lang=None, index=0, reply=False, write=True, source=False):
     """
     Command-line entrypoint to post a tweet message to Twitter.
     """
+
+    reply_metadata = True
 
     print("The date is:")
     print(now)
@@ -386,7 +391,6 @@ def main(lang=None, index=0, reply=False, write=True):
         print("uploading pic...")
         media = api.simple_upload(pic_fname)
         media_id = media.media_id
-        api.create_media_metadata(media_id, alt_text=f"Image source: {original_pic_url(pic_url)}")
         print(media)
 
         tweet_kwargs = {"media_ids": [media_id]}
@@ -394,10 +398,16 @@ def main(lang=None, index=0, reply=False, write=True):
             ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
             reply_id = ue_statuses[0].id
             tweet_kwargs["in_reply_to_status_id"] = reply_id
-            tweet_kwargs["auto_populate_reply_metadata"] = False
+            tweet_kwargs["auto_populate_reply_metadata"] = reply_metadata
         tweet = api.update_status(msg, **tweet_kwargs)
         # tweet = client.create_tweet(text=msg)
         print(tweet)
+
+        if source:
+            wikimedia_url = original_pic_url(pic_url)
+            print("Replying with following image source:\n" + wikimedia_url)
+            api.update_status(img_source[lang] + wikimedia_url,
+                              in_reply_to_status_id=tweet.id, auto_populate_reply_metadata=reply_metadata)
 
 
 if __name__ == "__main__":
@@ -412,6 +422,7 @@ if __name__ == "__main__":
                         help=f"Index to select pic (and language if not set)")
     parser.add_argument("--fake", "-f", action='store_true', help="Set to skip the actual tweet posting.")
     parser.add_argument("--reply", "-r", action='store_true', help="Set to reply to UE Commissions' latest tweet.")
+    parser.add_argument("--source", "-s", action='store_true', help="Add image source as a reply to the tweet.")
 
     args = parser.parse_args()
 
@@ -420,4 +431,4 @@ if __name__ == "__main__":
         day_month = dt.strptime(args.day, "%d-%m")
         today = date(day_month.day, day_month.month)
 
-    main(lang=args.language, index=args.index, reply=args.reply, write=not args.fake)
+    main(lang=args.language, index=args.index, reply=args.reply, write=not args.fake, source=args.source)
