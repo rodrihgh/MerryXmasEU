@@ -360,8 +360,6 @@ def main(lang=None, index=0, reply=False, write=True, source=False):
     Command-line entrypoint to post a tweet message to Twitter.
     """
 
-    reply_metadata = True
-
     print("The date is:")
     print(now)
 
@@ -398,7 +396,7 @@ def main(lang=None, index=0, reply=False, write=True, source=False):
             ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
             reply_id = ue_statuses[0].id
             tweet_kwargs["in_reply_to_status_id"] = reply_id
-            tweet_kwargs["auto_populate_reply_metadata"] = reply_metadata
+            tweet_kwargs["auto_populate_reply_metadata"] = False
         tweet = api.update_status(msg, **tweet_kwargs)
         # tweet = client.create_tweet(text=msg)
         print(tweet)
@@ -407,7 +405,7 @@ def main(lang=None, index=0, reply=False, write=True, source=False):
             wikimedia_url = original_pic_url(pic_url)
             print("Replying with following image source:\n" + wikimedia_url)
             api.update_status(img_source[lang] + wikimedia_url,
-                              in_reply_to_status_id=tweet.id, auto_populate_reply_metadata=reply_metadata)
+                              in_reply_to_status_id=tweet.id, auto_populate_reply_metadata=True)
 
 
 if __name__ == "__main__":
