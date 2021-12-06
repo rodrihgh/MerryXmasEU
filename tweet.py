@@ -33,6 +33,8 @@ today_is = {"EN": "today is",
             "DE": "heute ist",
             "FR": "aujourd'hui c'est"}
 
+_and_ = {"EN": " and ", "ES": " y ", "DE": " und ", "FR": " et "}
+
 weekdays = ({'EN': 'Monday', 'ES': 'lunes', 'DE': 'Montag', 'FR': 'lundi'},
             {'EN': 'Tuesday', 'ES': 'martes', 'DE': 'Dienstag', 'FR': 'mardi'},
             {'EN': 'Wednesday', 'ES': 'miércoles', 'DE': 'Mittwoch', 'FR': 'mercredi'},
@@ -93,6 +95,31 @@ light = {"EN": "May the birth of Our Lord Jesus Christ enlighten our peoples in 
 phrases = (ue_handles, header, today_is, advent_week, remaining, xmas_days, merry_xmas, light) + weekdays
 
 assert all(set(languages) == set(ph.keys()) for ph in phrases), "Some language missing among phrases"
+
+
+def fill_num(lang_dict, number):
+    return {k: v(number) for k, v in lang_dict.items()}
+
+
+def capitalize(lang_dict):
+    return {k: v.capitalize() for k, v in lang_dict.items()}
+
+
+def append(lang_dict, suffix):
+    if type(suffix) == dict:
+        return {k: v + suffix[k] for k, v in lang_dict.items()}
+    elif type(suffix) == str:
+        return {k: v + suffix for k, v in lang_dict.items()}
+    else:
+        raise ValueError("Invalid suffix")
+
+
+def shorten(lang_dict, length):
+    return {k: v[:-length] for k, v in lang_dict.items()}
+
+
+def join_message(parts, lang):
+    return " ".join(part[lang] for part in parts)
 
 
 def early_months(month):
@@ -163,14 +190,13 @@ celebrations = {first_advent: {"ES": "feliz 1er domingo de Adviento!",
                             "EN": "finally Christmas.",
                             "DE": "endlich Weihnachten.",
                             "FR": "la Fete de Noël, enfin."},
-                st_stephen: {"ES": "26 de diciembre, día de San Esteban Protomártir.",
+                st_stephen: {"ES": "26 de diciembre, Día de San Esteban Protomártir.",
                              "EN": "December the 26th, Boxing Day. "
                                    "We also celebrate the Feast of St. Stephen Protomartyr.",
-                             "DE": "der 2. Weihnachtstag. "
-                                   "Die katholische Kirche feiert ebenso den Stefanstag, "
-                                   "den Gedenktag des Erzmärtyrers.",
-                             "FR": "le jour des boîtes et la Fête de la Saint-Étienne, "
-                                   "protomartyr de l'Église."},
+                             "DE": "der 2. Weihnachtstag, für die kath. Kirche "
+                                   "der Tag des Erzmärtyrers Stephanus.",
+                             "FR": "le jour des boîtes, la Fête de la Saint-Étienne, "
+                                   "Protomartyr de l'Église."},
                 innocent: {"ES": "28 de diciembre, día de los Santos Inocentes.",
                            "EN": "December the 28th, Feast of the Holy Innocents.",
                            "DE": "28. Dezember, das Fest der Unschuldigen Kinder.",
@@ -194,35 +220,37 @@ celebrations = {first_advent: {"ES": "feliz 1er domingo de Adviento!",
                 # baptism: {"ES": "domingo, día del Bautizo del Señor"}} # TODO complete list
                 }
 
-if nikolaus.weekday() != 6:
-    celebrations[nikolaus] = {"ES": "feliz día de San Nicolás!",
-                              "EN": "happy Saint Nicholas Day!",
-                              "DE": "schönen Nikolaustag!",
-                              "FR": "bonne Fête de Saint-Nicolas!"}
-if holy_family not in celebrations.keys():
-    celebrations[holy_family] = {"EN": f"the Feast of the Holy Family and",
-                                 "ES": "el Día de la Sagrada Familia y",
-                                 "DE": "das Fest der Heiligen Familie und",
-                                 "FR": "le Jour de la Sainte Famille et"}
+nik_msg = {"ES": "feliz día de San Nicolás!",
+           "EN": "happy Saint Nicholas Day!",
+           "DE": "einen schönen Nikolaustag!",
+           "FR": "bonne Fête de Saint-Nicolas!"}
+hf_msg = {"EN": f"the Feast of the Holy Family",
+          "ES": f"Día de la Sagrada Familia",
+          "DE": f"das Fest der Heiligen Familie",
+          "FR": f"le Jour de la Sainte Famille"}
+
+if nikolaus in celebrations.keys():
+    celebrations[nikolaus] = append(append(shorten(celebrations[nikolaus], 1), _and_), nik_msg)
 else:
-    holy_family = None
+    celebrations[nikolaus] = nik_msg
+
+if holy_family in celebrations.keys():
+    hf_greet = append(shorten(celebrations[holy_family], 1), _and_)
+    celebrations[holy_family] = append(append(hf_greet, hf_msg), ".")
+else:
+    hf_weekday = weekdays[holy_family.weekday()]
+    hf_day = fill_num(xmas_days, (holy_family - christmas).days + 1)
+    hf_greet = append(append(hf_weekday, ", "), hf_msg)
+    celebrations[holy_family] = append(append(hf_greet, _and_), hf_day)
 
 assert all(set(languages) == set(cel.keys())
            for d, cel in celebrations.items()), "Some language missing among celebration days"
 
 celeb_days = celebrations.keys()
 
-special_pics = {
-    nikolaus: "nikolaus.json",
-    xmas_eve: "shepherds.json",
-    christmas: "shepherds.json",
-    st_stephen: "st_stephen.json",
-    epiphany_eve: "magi.json",
-    epiphany: "magi.json"
-}  # {baptism: "baptism.json"}  # TODO
-
-special_pics[holy_family] = "holy_family.json"
-special_pics[innocent] = "innocents.json"
+special_pics = {nikolaus: "nikolaus.json", xmas_eve: "shepherds.json", christmas: "shepherds.json",
+                st_stephen: "st_stephen.json", epiphany_eve: "magi.json", epiphany: "magi.json",
+                holy_family: "holy_family.json", innocent: "innocents.json"}  # {baptism: "baptism.json"}  # TODO
 
 special_pic_days = special_pics.keys()
 
@@ -257,22 +285,6 @@ def get_client():
                          access_token=ACCESS_KEY, access_token_secret=ACCESS_SECRET)
 
 
-def fill_num(lang_dict, number):
-    return {k: v(number) for k, v in lang_dict.items()}
-
-
-def capitalize(lang_dict):
-    return {k: v.capitalize() for k, v in lang_dict.items()}
-
-
-def append(lang_dict, suffix):
-    return {k: v + suffix for k, v in lang_dict.items()}
-
-
-def join_message(parts, lang):
-    return " ".join(part[lang] for part in parts)
-
-
 def write_tweet(lang="ES"):
     weekday = weekdays[today.weekday()]
     if first_advent <= today < christmas:
@@ -290,10 +302,7 @@ def write_tweet(lang="ES"):
     elif christmas <= today <= baptism:
         xmas_d = (today - christmas).days + 1
         if today in celeb_days:
-            if today == holy_family:
-                day_text = [append(weekday, ","), celebrations[today], fill_num(xmas_days, xmas_d)]
-            else:
-                day_text = [celebrations[today]]
+            day_text = [celebrations[today]]
         else:
             day_text = [append(weekday, ","), fill_num(xmas_days, xmas_d)]
         return join_message([header, merry_xmas, light, capitalize(today_is)] + day_text, lang)
