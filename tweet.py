@@ -413,7 +413,7 @@ def download_pic(url):
 
 
 def original_pic_url(pic_url):
-    regex = r"(\/[\da-f]{2}\/)(.*)(\/)"
+    regex = r"(\/[\da-f]{2}\/)(.*)(\/?)"
     match = re.search(regex, pic_url)
     if match:
         return f"https://commons.wikimedia.org/wiki/File:{match.group(2)}"
