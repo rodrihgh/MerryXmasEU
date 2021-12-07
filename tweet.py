@@ -79,6 +79,10 @@ def capitalize(lang_dict):
     return {k: v.capitalize() for k, v in lang_dict.items()}
 
 
+def lowercase(lang_dict):
+    return {k: v.lower() for k, v in lang_dict.items()}
+
+
 def append(lang_dict, suffix):
     if type(suffix) == dict:
         return {k: v + suffix[k] for k, v in lang_dict.items()}
@@ -110,10 +114,10 @@ header = {
 }
 
 today_is = {
-    "EN": "today is",
-    "ES": "hoy es",
-    "DE": "heute ist",
-    "FR": "aujourd'hui c'est"
+    "EN": "Today is",
+    "ES": "Hoy es",
+    "DE": "Heute ist",
+    "FR": "Aujourd'hui c'est"
 }
 
 _and_ = {"EN": " and ", "ES": " y ", "DE": " und ", "FR": " et "}
@@ -362,11 +366,11 @@ def write_tweet(day, lang="ES"):
             day_text = [celebrations[day]]
         else:
             adv_week = (day - first_advent).days // 7 + 1
-            day_text = [today_is, weekday, fill_num(advent_week, adv_week)]
+            day_text = [lowercase(today_is), weekday, fill_num(advent_week, adv_week)]
         rem_days = (christmas - day).days
         return join_message([header] + day_text + [fill_num(remaining, rem_days)], lang)
     elif day == christmas:
-        return join_message([header, merry_xmas, light, capitalize(today_is), celebrations[day]], lang)
+        return join_message([header, merry_xmas, light, today_is, celebrations[day]], lang)
     elif day == new_year:
         return join_message([header, merry_xmas, today_is, celebrations[day]], lang)
     elif christmas <= day <= epiphany:
@@ -375,7 +379,7 @@ def write_tweet(day, lang="ES"):
             day_text = [celebrations[day]]
         else:
             day_text = [append(weekday, ","), fill_num(xmas_days, xmas_d)]
-        return join_message([header, merry_xmas, light, capitalize(today_is)] + day_text, lang)
+        return join_message([header, merry_xmas, light, today_is] + day_text, lang)
     else:
         print("Christmas Season is over :(")
 
