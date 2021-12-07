@@ -29,9 +29,10 @@ def early_months(month):
     return month < 3
 
 
-def current_xmas_year():
-    now = dt.now()
-    month, year = now.month, now.year
+def current_xmas_year(day=None):
+    if day is None:
+        day = dt.now()
+    month, year = day.month, day.year
     if early_months(month):
         year -= 1
     return year
@@ -168,84 +169,58 @@ phrases = (_and_, img_source, ue_handles, header, today_is,
 
 assert all(set(languages) == set(ph.keys()) for ph in phrases), "Some language missing among phrases"
 
+# DATE-SPECIFIC PHRASES
 
-# DATES AND DATE-RELATED PHRASES
-
-christmas = date(25, 12)
-xmas_weekday = christmas.weekday()
-
-nikolaus = date(6, 12)
-xmas_eve = date(24, 12)
-st_stephen = date(26, 12)
-innocent = date(28, 12)
-new_years_eve = date(31, 12)
-new_year = date(1, 1)
-
-if xmas_weekday == 6:
-    holy_family = date(30, 12)
-else:
-    holy_family = christmas + td(days=6-xmas_weekday)
-
-epiphany_eve = date(5, 1)
-epiphany = date(6, 1)
-
-epiphany_weekday = epiphany.weekday()
-
-fourth_advent = christmas - td(days=(xmas_weekday+1))
-third_advent = fourth_advent - td(days=7)
-second_advent = third_advent - td(days=7)
-first_advent = second_advent - td(days=7)
-
-celebrations = {
-    first_advent: {
+day_messages = {
+    "first_advent": {
         "ES": "feliz 1er domingo de Adviento!",
         "EN": "happy 1st Sunday of Advent!",
         "DE": "schönen 1. Advent!",
         "FR": "bon 1er dimanche de l'Avent!"
     },
-    second_advent: {
+    "second_advent": {
         "ES": "feliz 2º domingo de Adviento!",
         "EN": "happy 2nd Sunday of Advent!",
         "DE": "schönen 2. Advent!",
         "FR": "bon 2ème dimanche de l'Avent!"
     },
-    third_advent: {
+    "third_advent": {
         "ES": "feliz 3er domingo de Adviento!",
         "EN": "happy 3rd Sunday of Advent!",
         "DE": "schönen 3. Advent!",
         "FR": "bon 3ème dimanche de l'Avent!"
     },
-    fourth_advent: {
+    "fourth_advent": {
         "ES": "feliz 4º domingo de Adviento!",
         "EN": "happy 4th Sunday of Advent!",
         "DE": "schönen 4. Advent!",
         "FR": "bon 4ème dimanche de l'Avent!"
     },
-    xmas_eve: {
+    "xmas_eve": {
         "ES": "pasad una feliz Nochebuena.",
         "EN": "I wish you a wonderful Christmas Eve.",
         "DE": "meine beste Wünsche zu diesem Heiligabend.",
         "FR": "je vous souhaite un bon Réveillon de Noël."
     },
-    christmas: {
+    "christmas": {
         "ES": "Navidad, al fin.",
         "EN": "finally Christmas.",
         "DE": "endlich Weihnachten.",
         "FR": "la Fete de Noël, enfin."
     },
-    st_stephen: {
+    "st_stephen": {
         "ES": "26 de diciembre, Día de San Esteban Protomártir.",
         "EN": "December the 26th, Boxing Day. We also celebrate the Feast of St. Stephen Protomartyr.",
         "DE": "der 2. Weihnachtstag, für die kath. Kirche der Tag des Erzmärtyrers Stephanus.",
         "FR": "le jour des boîtes, la Fête de la Saint-Étienne, Protomartyr de l'Église."
     },
-    innocent: {
+    "innocent": {
         "ES": "28 de diciembre, día de los Santos Inocentes.",
         "EN": "December the 28th, Feast of the Holy Innocents.",
         "DE": "28. Dezember, das Fest der Unschuldigen Kinder.",
         "FR": "le 28 décembre, le Jour des Saints Innocents."
     },
-    new_year: {
+    "new_year": {
         "ES": "la Solemnidad de Santa María, Madre de Dios para la Iglesia Católica. La Iglesia Ortodoxa oriental "
               "y diversas confesiones protestantes celebran la Circuncisión de Cristo. Lo de Año Nuevo no me suena...",
         "EN": "the Solemnity of Mary, Mother of God in the Catholic Church and the Feast of the Circumcision of Christ "
@@ -255,60 +230,101 @@ celebrations = {
         "FR": "la fête de Marie mère de Dieu pour l'Église catholique et la fête de la Circoncision de Jésus pour "
               "les Églises orthodoxe, anglicane et luthérienne. Nouvel an? Je n'en ai jamais entendu parler."
     },
-    epiphany_eve: {
+    "epiphany_eve": {
         "ES": "la Noche de Reyes, la 12ª Noche, Víspera de la Epifanía.",
         "EN": "the Twelfth Night, the Epiphany Eve.",
         "DE": "die Vigil vor der Epiphanie.",
         "FR": "la veille de l'Épiphanie."
     },
-    epiphany: {
+    "epiphany": {
         "ES": "el Día de los Reyes Magos, la Epifanía de Nuestro Señor.",
         "EN": "the Epiphany of the Lord, the Three Kings' Day.",
         "DE": "Dreikönigstag, die Epiphanie, das Hochfest der Erscheinung des Herrn.",
         "FR": "l'Épiphanie du Seigneur, le Jour des Rois."
     },
+    "nikolaus": {
+        "ES": "feliz día de San Nicolás!",
+        "EN": "happy Saint Nicholas Day!",
+        "DE": "einen schönen Nikolaustag!",
+        "FR": "bonne Fête de Saint-Nicolas!"
+    },
+    "holy_family": {
+        "EN": f"the Feast of the Holy Family",
+        "ES": f"Día de la Sagrada Familia",
+        "DE": f"das Fest der Heiligen Familie",
+        "FR": f"le Jour de la Sainte Famille"
+    }
 }
-
-nik_msg = {
-    "ES": "feliz día de San Nicolás!",
-    "EN": "happy Saint Nicholas Day!",
-    "DE": "einen schönen Nikolaustag!",
-    "FR": "bonne Fête de Saint-Nicolas!"
-}
-hf_msg = {
-    "EN": f"the Feast of the Holy Family",
-    "ES": f"Día de la Sagrada Familia",
-    "DE": f"das Fest der Heiligen Familie",
-    "FR": f"le Jour de la Sainte Famille"
-}
-
-if nikolaus in celebrations.keys():
-    celebrations[nikolaus] = append(append(shorten(celebrations[nikolaus], 1), _and_), nik_msg)
-else:
-    celebrations[nikolaus] = nik_msg
-
-if holy_family in celebrations.keys():
-    hf_greet = append(shorten(celebrations[holy_family], 1), _and_)
-    celebrations[holy_family] = append(append(hf_greet, hf_msg), ".")
-else:
-    hf_weekday = weekdays[holy_family.weekday()]
-    hf_day = fill_num(xmas_days, (holy_family - christmas).days + 1)
-    hf_greet = append(append(hf_weekday, ", "), hf_msg)
-    celebrations[holy_family] = append(append(hf_greet, _and_), hf_day)
 
 assert all(set(languages) == set(cel.keys())
-           for d, cel in celebrations.items()), "Some language missing among celebration days"
+           for d, cel in day_messages.items()), "Some language missing among celebration days"
 
-celeb_days = celebrations.keys()
+# GLOBAL VARIABLES. They must be initialized
 
-special_pics = {nikolaus: "nikolaus.json", xmas_eve: "shepherds.json", christmas: "shepherds.json",
-                st_stephen: "st_stephen.json", epiphany_eve: "magi.json", epiphany: "magi.json",
-                holy_family: "holy_family.json", innocent: "innocents.json"}
-
-special_pic_days = special_pics.keys()
+first_advent, christmas, epiphany, new_year = date(1, 12), date(25, 12), date(6, 12), date(1, 1)
+celebrations = {}
+special_pics = {}
 
 
 # MAIN FUNCTIONS #
+
+def init_dates(year=None):
+    global first_advent, christmas, new_year, epiphany, celebrations, special_pics
+
+    christmas = date(25, 12, year)
+    xmas_weekday = christmas.weekday()
+
+    nikolaus = date(6, 12, year)
+    xmas_eve = date(24, 12, year)
+    st_stephen = date(26, 12, year)
+    innocent = date(28, 12, year)
+    new_year = date(1, 1, year)
+
+    if xmas_weekday == 6:
+        holy_family = date(30, 12, year)
+    else:
+        holy_family = christmas + td(days=6-xmas_weekday)
+
+    epiphany_eve = date(5, 1, year)
+    epiphany = date(6, 1, year)
+
+    fourth_advent = christmas - td(days=(xmas_weekday+1))
+    third_advent = fourth_advent - td(days=7)
+    second_advent = third_advent - td(days=7)
+    first_advent = second_advent - td(days=7)
+
+    celebrations = {
+        first_advent:   day_messages["first_advent"],
+        second_advent:  day_messages["second_advent"],
+        third_advent:   day_messages["third_advent"],
+        fourth_advent:  day_messages["fourth_advent"],
+        xmas_eve:       day_messages["xmas_eve"],
+        christmas:      day_messages["christmas"],
+        st_stephen:     day_messages["st_stephen"],
+        innocent:       day_messages["innocent"],
+        new_year:       day_messages["new_year"],
+        epiphany_eve:   day_messages["epiphany_eve"],
+        epiphany:       day_messages["epiphany"],
+    }
+
+    if nikolaus in celebrations.keys():
+        celebrations[nikolaus] = append(append(shorten(celebrations[nikolaus], 1), _and_), day_messages["nikolaus"])
+    else:
+        celebrations[nikolaus] = day_messages["nikolaus"]
+
+    if holy_family in celebrations.keys():
+        hf_greet = append(shorten(celebrations[holy_family], 1), _and_)
+        celebrations[holy_family] = append(append(hf_greet, day_messages["holy_family"]), ".")
+    else:
+        hf_weekday = weekdays[holy_family.weekday()]
+        hf_day = fill_num(xmas_days, (holy_family - christmas).days + 1)
+        hf_greet = append(append(hf_weekday, ", "), day_messages["holy_family"])
+        celebrations[holy_family] = append(append(hf_greet, _and_), hf_day)
+
+    special_pics = {nikolaus: "nikolaus.json", xmas_eve: "shepherds.json", christmas: "shepherds.json",
+                    st_stephen: "st_stephen.json", epiphany_eve: "magi.json", epiphany: "magi.json",
+                    holy_family: "holy_family.json", innocent: "innocents.json"}
+
 
 def get_language(lang_index, seed_date):
     seed(seed_date.year * 1e4 + seed_date.month * 1e2 + seed_date.day)
@@ -340,6 +356,7 @@ def get_client():
 
 def write_tweet(day, lang="ES"):
     weekday = weekdays[day.weekday()]
+    celeb_days = celebrations.keys()
     if first_advent <= day < christmas:
         if day in celeb_days:
             day_text = [celebrations[day]]
@@ -364,7 +381,7 @@ def write_tweet(day, lang="ES"):
 
 
 def choose_pic(index, day, reverse=False):
-    if day in special_pic_days:
+    if day in special_pics.keys():
         pic_pool = Path.cwd()/"pics"/special_pics[day]
     else:
         pic_pool = Path.cwd()/"pics"/"normal.json"
@@ -373,7 +390,7 @@ def choose_pic(index, day, reverse=False):
 
     pic_len = len(pic_list)
 
-    seed(current_xmas_year())
+    seed(current_xmas_year(day))
     shuffle(pic_list)
 
     pic_index = ((day - first_advent).days * n_lang + index) % pic_len
@@ -460,7 +477,8 @@ if __name__ == "__main__":
 
     parser.add_argument("language", type=str, default=None, nargs="?", choices=languages,
                         help="Language to write the tweet in.")
-    parser.add_argument("--day", "-d", type=str, default=None, help="Input the day as DD-MM")
+    parser.add_argument("--day", "-d", type=str, default=None, help="Input the day as DD-MM. Defaults to today")
+    parser.add_argument("--year", "-y", type=int, default=None, help="Input the year as YYYY. Defaults to current year")
     parser.add_argument("--index", "-i", type=int, default=0, choices=range(n_lang),
                         help=f"Index to select pic (and language if not set)")
     parser.add_argument("--fake", "-f", action='store_true', help="Set to skip the actual tweet posting.")
@@ -473,6 +491,8 @@ if __name__ == "__main__":
         arg_day = dt.now().date()
     else:
         day_month = dt.strptime(args.day, "%d-%m")
-        arg_day = date(day_month.day, day_month.month)
+        arg_day = date(day_month.day, day_month.month, args.year)
+
+    init_dates(args.year)
 
     main(day=arg_day, lang=args.language, index=args.index, reply=args.reply, write=not args.fake, source=args.source)
