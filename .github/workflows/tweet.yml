@@ -62,5 +62,4 @@ jobs:
               contains(github.event.schedule, '21') && '-s -i 1 -r' ||
               github.event.inputs.script_args
             }}
-        run: |
-          python tweet.py $SCRIPT_ARGS
+        run: python tweet.py $SCRIPT_ARGS

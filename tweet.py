@@ -13,7 +13,7 @@ import re
 
 import tweepy
 
-
+# API Keys #
 CONSUMER_KEY = os.environ.get('CONSUMER_KEY')
 CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
 ACCESS_KEY = os.environ.get('ACCESS_KEY')
@@ -22,33 +22,34 @@ ACCESS_SECRET = os.environ.get('ACCESS_SECRET')
 languages = ["EN", "ES", "DE", "FR"]
 n_lang = len(languages)
 
-img_source = {"EN": "Image source\n", "ES": "Fuente de la imagen\n", "DE": "Bildquelle\n", "FR": "Source de l'image\n"}
 
-ue_handles = {"EN": "EU_Commission", "ES": "ComisionEuropea", "DE": "EUinDE", "FR": "UEFrance"}
-header = {"EN": f"Dear @{ue_handles['EN']},",
-          "ES": f"Querida @{ue_handles['ES']},",
-          "DE": f"Liebe @{ue_handles['DE']},",
-          "FR": f"Chère @{ue_handles['FR']},"}
+#  HELPER FUNCTIONS #
 
-today_is = {"EN": "today is",
-            "ES": "hoy es",
-            "DE": "heute ist",
-            "FR": "aujourd'hui c'est"}
+def early_months(month):
+    return month < 3
 
-_and_ = {"EN": " and ", "ES": " y ", "DE": " und ", "FR": " et "}
 
-weekdays = ({'EN': 'Monday', 'ES': 'lunes', 'DE': 'Montag', 'FR': 'lundi'},
-            {'EN': 'Tuesday', 'ES': 'martes', 'DE': 'Dienstag', 'FR': 'mardi'},
-            {'EN': 'Wednesday', 'ES': 'miércoles', 'DE': 'Mittwoch', 'FR': 'mercredi'},
-            {'EN': 'Thursday', 'ES': 'jueves', 'DE': 'Donnerstag', 'FR': 'jeudi'},
-            {'EN': 'Friday', 'ES': 'viernes', 'DE': 'Freitag', 'FR': 'vendredi'},
-            {'EN': 'Saturday', 'ES': 'sábado', 'DE': 'Samstag', 'FR': 'samedi'},
-            {'EN': 'Sunday', 'ES': 'domingo', 'DE': 'Sonntag', 'FR': 'dimanche'})
+def current_xmas_year():
+    now = dt.now()
+    month, year = now.month, now.year
+    if early_months(month):
+        year -= 1
+    return year
+
+
+def date(day, month, year=None):
+    if year is None:
+        year = current_xmas_year()
+    if early_months(month):
+        year += 1
+    return dt(year=year, month=month, day=day).date()
 
 
 def ordinal(num, lang, feminine=False):
     if type(num) is not int or num < 1:
         raise ValueError(f"Invalid ordinal number {num}")
+    if lang not in languages:
+        raise ValueError(f"Invalid language {lang}")
     if lang == "EN":
         if num == 1:
             return "1st"
@@ -67,37 +68,6 @@ def ordinal(num, lang, feminine=False):
             return f"{num}ème"
     elif lang == "DE":
         return f"{num}."
-
-
-advent_week = {"EN": lambda d: f"of the {ordinal(d, 'EN')} week of Advent.",
-               "ES": lambda d: f"de la {ordinal(d, 'ES', feminine=True)} semana de Adviento.",
-               "DE": lambda d: f"der {ordinal(d, 'DE')}. Adventswoche.",
-               "FR": lambda d: f"de la {ordinal(d, 'FR', feminine=True)} semaine de l'Avent."}
-
-remaining = {"EN": lambda d: f"Only {d} days left to wish you a #MerryChristmas",
-             "ES": lambda d: f"Faltan {d} días para desearos una muy #FelizNavidad",
-             "DE": lambda d: f"Es sind nur noch {d} Tage, um Ihnen #FroheWeihnachten zu wünschen.",
-             "FR": lambda d: f"Plus que {d} jours pour vous souhaiter un #JoyeuxNoël"}
-
-xmas_days = {"EN": lambda d: f"the {ordinal(d, 'EN')} Christmas day.",
-             "ES": lambda d: f"{ordinal(d, 'ES')} día de Navidad.",
-             "DE": lambda d: f"{ordinal(d, 'DE')} Weihnachtstag.",
-             "FR": lambda d: f"le {ordinal(d, 'FR')} jour de Noël."}
-
-merry_xmas = {"EN": "#MerryChristmas to the European nation!",
-              "ES": "#FelizNavidad a la nación europea!",
-              "DE": "#FroheWeihnachten der europäischen Nation!",
-              "FR": "#JoyeuxNoël à la nation européenne !"}
-
-light = {"EN": "May the birth of Our Lord Jesus Christ enlighten our peoples in peace and justice.",
-         "ES": "Que el nacimiento de Nuestro Salvador Jesucristo ilumine a nuestros pueblos en paz y justicia.",
-         "DE": "Möge die Geburt unseres Herrn Jesu Christi unsere Völker in Frieden und Gerechtigkeit erleuchten.",
-         "FR": "Que la naissance de notre Sauveur Jésus-Christ éclaire nos peuples dans la paix et la justice."}
-
-phrases = (_and_, img_source, ue_handles, header, today_is,
-           advent_week, remaining, xmas_days, merry_xmas, light) + weekdays
-
-assert all(set(languages) == set(ph.keys()) for ph in phrases), "Some language missing among phrases"
 
 
 def fill_num(lang_dict, number):
@@ -125,23 +95,81 @@ def join_message(parts, lang):
     return " ".join(part[lang] for part in parts)
 
 
-def early_months(month):
-    return month < 3
+# PHRASES #
+
+img_source = {"EN": "Image source\n", "ES": "Fuente de la imagen\n", "DE": "Bildquelle\n", "FR": "Source de l'image\n"}
+
+ue_handles = {"EN": "EU_Commission", "ES": "ComisionEuropea", "DE": "EUinDE", "FR": "UEFrance"}
+
+header = {
+    "EN": f"Dear @{ue_handles['EN']},",
+    "ES": f"Querida @{ue_handles['ES']},",
+    "DE": f"Liebe @{ue_handles['DE']},",
+    "FR": f"Chère @{ue_handles['FR']},"
+}
+
+today_is = {
+    "EN": "today is",
+    "ES": "hoy es",
+    "DE": "heute ist",
+    "FR": "aujourd'hui c'est"
+}
+
+_and_ = {"EN": " and ", "ES": " y ", "DE": " und ", "FR": " et "}
+
+weekdays = (
+    {'EN': 'Monday',    'ES': 'lunes',      'DE': 'Montag',     'FR': 'lundi'},
+    {'EN': 'Tuesday',   'ES': 'martes',     'DE': 'Dienstag',   'FR': 'mardi'},
+    {'EN': 'Wednesday', 'ES': 'miércoles',  'DE': 'Mittwoch',   'FR': 'mercredi'},
+    {'EN': 'Thursday',  'ES': 'jueves',     'DE': 'Donnerstag', 'FR': 'jeudi'},
+    {'EN': 'Friday',    'ES': 'viernes',    'DE': 'Freitag',    'FR': 'vendredi'},
+    {'EN': 'Saturday',  'ES': 'sábado',     'DE': 'Samstag',    'FR': 'samedi'},
+    {'EN': 'Sunday',    'ES': 'domingo',    'DE': 'Sonntag',    'FR': 'dimanche'}
+)
+
+advent_week = {
+    "EN": lambda d: f"of the {ordinal(d, 'EN')} week of Advent.",
+    "ES": lambda d: f"de la {ordinal(d, 'ES', feminine=True)} semana de Adviento.",
+    "DE": lambda d: f"der {ordinal(d, 'DE')} Adventswoche.",
+    "FR": lambda d: f"de la {ordinal(d, 'FR', feminine=True)} semaine de l'Avent."
+}
+
+remaining = {
+    "EN": lambda d: f"Only {d} day{'s' if d>1 else ''} left to wish you a #MerryChristmas",
+    "ES": lambda d: f"{f'Falta 1 día' if d==1 else f'Faltan {d} días'} para desearos una muy #FelizNavidad",
+    "DE": lambda d: f"Es {f'ist nur noch 1 Tag' if d==1 else f'sind nur noch {d} Tage'}"
+                    f", um Ihnen #FroheWeihnachten zu wünschen.",
+    "FR": lambda d: f"Plus que {d} jour{'s' if d>1 else ''} pour vous souhaiter un #JoyeuxNoël"
+}
+
+xmas_days = {
+    "EN": lambda d: f"the {ordinal(d, 'EN')} Christmas day.",
+    "ES": lambda d: f"{ordinal(d, 'ES')} día de Navidad.",
+    "DE": lambda d: f"{ordinal(d, 'DE')} Weihnachtstag.",
+    "FR": lambda d: f"le {ordinal(d, 'FR')} jour de Noël."
+}
+
+merry_xmas = {
+    "EN": "#MerryChristmas to the European nation!",
+    "ES": "#FelizNavidad a la nación europea!",
+    "DE": "#FroheWeihnachten der europäischen Nation!",
+    "FR": "#JoyeuxNoël à la nation européenne !"
+}
+
+light = {
+    "EN": "May the birth of Our Lord Jesus Christ enlighten our peoples in peace and justice.",
+    "ES": "Que el nacimiento de Nuestro Salvador Jesucristo ilumine a nuestros pueblos en paz y justicia.",
+    "DE": "Möge die Geburt unseres Herrn Jesu Christi unsere Völker in Frieden und Gerechtigkeit erleuchten.",
+    "FR": "Que la naissance de notre Sauveur Jésus-Christ éclaire nos peuples dans la paix et la justice."
+}
+
+phrases = (_and_, img_source, ue_handles, header, today_is,
+           advent_week, remaining, xmas_days, merry_xmas, light) + weekdays
+
+assert all(set(languages) == set(ph.keys()) for ph in phrases), "Some language missing among phrases"
 
 
-now = dt.now()
-today = now.date()
-year = today.year
-if early_months(today.month):
-    year -= 1
-
-
-def date(day, month):
-    date_year = year
-    if early_months(month):
-        date_year += 1
-    return dt(year=date_year, month=month, day=day).date()
-
+# DATES AND DATE-RELATED PHRASES
 
 christmas = date(25, 12)
 xmas_weekday = christmas.weekday()
@@ -167,75 +195,92 @@ fourth_advent = christmas - td(days=(xmas_weekday+1))
 third_advent = fourth_advent - td(days=7)
 second_advent = third_advent - td(days=7)
 first_advent = second_advent - td(days=7)
-celebrations = {first_advent: {"ES": "feliz 1er domingo de Adviento!",
-                               "EN": "happy 1st Sunday of Advent!",
-                               "DE": "schönen 1. Advent!",
-                               "FR": "bon 1er dimanche de l'Avent!"},
-                second_advent: {"ES": "feliz 2º domingo de Adviento!",
-                                "EN": "happy 2nd Sunday of Advent!",
-                                "DE": "schönen 2. Advent!",
-                                "FR": "bon 2ème dimanche de l'Avent!"},
-                third_advent: {"ES": "feliz 3er domingo de Adviento!",
-                               "EN": "happy 3rd Sunday of Advent!",
-                               "DE": "schönen 3. Advent!",
-                               "FR": "bon 3ème dimanche de l'Avent!"},
-                fourth_advent: {"ES": "feliz 4º domingo de Adviento!",
-                                "EN": "happy 4th Sunday of Advent!",
-                                "DE": "schönen 4. Advent!",
-                                "FR": "bon 4ème dimanche de l'Avent!"},
-                xmas_eve: {"ES": "pasad una feliz Nochebuena.",
-                           "EN": "I wish you a wonderful Christmas Eve.",
-                           "DE": "meine beste Wünsche zu diesem Heiligabend.",
-                           "FR": "je vous souhaite un bon Réveillon de Noël."},
-                christmas: {"ES": "Navidad, al fin.",
-                            "EN": "finally Christmas.",
-                            "DE": "endlich Weihnachten.",
-                            "FR": "la Fete de Noël, enfin."},
-                st_stephen: {"ES": "26 de diciembre, Día de San Esteban Protomártir.",
-                             "EN": "December the 26th, Boxing Day. "
-                                   "We also celebrate the Feast of St. Stephen Protomartyr.",
-                             "DE": "der 2. Weihnachtstag, für die kath. Kirche "
-                                   "der Tag des Erzmärtyrers Stephanus.",
-                             "FR": "le jour des boîtes, la Fête de la Saint-Étienne, "
-                                   "Protomartyr de l'Église."},
-                innocent: {"ES": "28 de diciembre, día de los Santos Inocentes.",
-                           "EN": "December the 28th, Feast of the Holy Innocents.",
-                           "DE": "28. Dezember, das Fest der Unschuldigen Kinder.",
-                           "FR": "le 28 décembre, le Jour des Saints Innocents."
-                           },
-                new_year: {"ES": "la Solemnidad de Santa María, Madre de Dios para la Iglesia Católica. "
-                                 "La Iglesia Ortodoxa oriental y diversas confesiones protestantes celebran "
-                                 "la Circuncisión de Cristo. Lo de Año Nuevo no me suena...",
-                           "EN": "the Solemnity of Mary, Mother of God in the Catholic Church and "
-                                 "the Feast of the Circumcision of Christ for the Orthodox, "
-                                 "Lutheran and Anglican Churches, among others. New Year? Never heard of it.",
-                           "DE": "das Hochfest der Gottesmutter laut der kath. Kirche."
-                                 "Die orthodoxe, anglikanische und evangelische Kirchen feiern hingegen "
-                                 "die Beschneidung des Herrn. Neujahr? Noch nie davon gehört.",
-                           "FR": "la fête de Marie mère de Dieu pour l'Église catholique et "
-                                 "la fête de la Circoncision de Jésus pour les Églises orthodoxe, anglicane "
-                                 "et luthérienne. Nouvel an? Je n'en ai jamais entendu parler "
-                           },
-                epiphany_eve: {"ES": "la Noche de Reyes, la 12ª Noche, Víspera de la Epifanía.",
-                               "EN": "the Twelfth Night, the Epiphany Eve.",
-                               "DE": "die Vigil vor der Epiphanie.",
-                               "FR": "la veille de l'Épiphanie."
-                               },
-                epiphany: {"ES": "el Día de los Reyes Magos, la Epifanía de Nuestro Señor.",
-                           "EN": "the Epiphany of the Lord, the Three Kings' Day.",
-                           "DE": "Dreikönigstag, die Epiphanie, das Hochfest der Erscheinung des Herrn.",
-                           "FR": "l'Épiphanie du Seigneur, le Jour des Rois."
-                           },
-                }
 
-nik_msg = {"ES": "feliz día de San Nicolás!",
-           "EN": "happy Saint Nicholas Day!",
-           "DE": "einen schönen Nikolaustag!",
-           "FR": "bonne Fête de Saint-Nicolas!"}
-hf_msg = {"EN": f"the Feast of the Holy Family",
-          "ES": f"Día de la Sagrada Familia",
-          "DE": f"das Fest der Heiligen Familie",
-          "FR": f"le Jour de la Sainte Famille"}
+celebrations = {
+    first_advent: {
+        "ES": "feliz 1er domingo de Adviento!",
+        "EN": "happy 1st Sunday of Advent!",
+        "DE": "schönen 1. Advent!",
+        "FR": "bon 1er dimanche de l'Avent!"
+    },
+    second_advent: {
+        "ES": "feliz 2º domingo de Adviento!",
+        "EN": "happy 2nd Sunday of Advent!",
+        "DE": "schönen 2. Advent!",
+        "FR": "bon 2ème dimanche de l'Avent!"
+    },
+    third_advent: {
+        "ES": "feliz 3er domingo de Adviento!",
+        "EN": "happy 3rd Sunday of Advent!",
+        "DE": "schönen 3. Advent!",
+        "FR": "bon 3ème dimanche de l'Avent!"
+    },
+    fourth_advent: {
+        "ES": "feliz 4º domingo de Adviento!",
+        "EN": "happy 4th Sunday of Advent!",
+        "DE": "schönen 4. Advent!",
+        "FR": "bon 4ème dimanche de l'Avent!"
+    },
+    xmas_eve: {
+        "ES": "pasad una feliz Nochebuena.",
+        "EN": "I wish you a wonderful Christmas Eve.",
+        "DE": "meine beste Wünsche zu diesem Heiligabend.",
+        "FR": "je vous souhaite un bon Réveillon de Noël."
+    },
+    christmas: {
+        "ES": "Navidad, al fin.",
+        "EN": "finally Christmas.",
+        "DE": "endlich Weihnachten.",
+        "FR": "la Fete de Noël, enfin."
+    },
+    st_stephen: {
+        "ES": "26 de diciembre, Día de San Esteban Protomártir.",
+        "EN": "December the 26th, Boxing Day. We also celebrate the Feast of St. Stephen Protomartyr.",
+        "DE": "der 2. Weihnachtstag, für die kath. Kirche der Tag des Erzmärtyrers Stephanus.",
+        "FR": "le jour des boîtes, la Fête de la Saint-Étienne, Protomartyr de l'Église."
+    },
+    innocent: {
+        "ES": "28 de diciembre, día de los Santos Inocentes.",
+        "EN": "December the 28th, Feast of the Holy Innocents.",
+        "DE": "28. Dezember, das Fest der Unschuldigen Kinder.",
+        "FR": "le 28 décembre, le Jour des Saints Innocents."
+    },
+    new_year: {
+        "ES": "la Solemnidad de Santa María, Madre de Dios para la Iglesia Católica. La Iglesia Ortodoxa oriental "
+              "y diversas confesiones protestantes celebran la Circuncisión de Cristo. Lo de Año Nuevo no me suena...",
+        "EN": "the Solemnity of Mary, Mother of God in the Catholic Church and the Feast of the Circumcision of Christ "
+              "for the Orthodox, Lutheran and Anglican Churches, among others. New Year? Never heard of it.",
+        "DE": "das Hochfest der Gottesmutter laut der kath. Kirche. Die orthodoxe, anglikanische und evangelische "
+              "Kirchen feiern hingegen die Beschneidung des Herrn. Neujahr? Noch nie davon gehört.",
+        "FR": "la fête de Marie mère de Dieu pour l'Église catholique et la fête de la Circoncision de Jésus pour "
+              "les Églises orthodoxe, anglicane et luthérienne. Nouvel an? Je n'en ai jamais entendu parler."
+    },
+    epiphany_eve: {
+        "ES": "la Noche de Reyes, la 12ª Noche, Víspera de la Epifanía.",
+        "EN": "the Twelfth Night, the Epiphany Eve.",
+        "DE": "die Vigil vor der Epiphanie.",
+        "FR": "la veille de l'Épiphanie."
+    },
+    epiphany: {
+        "ES": "el Día de los Reyes Magos, la Epifanía de Nuestro Señor.",
+        "EN": "the Epiphany of the Lord, the Three Kings' Day.",
+        "DE": "Dreikönigstag, die Epiphanie, das Hochfest der Erscheinung des Herrn.",
+        "FR": "l'Épiphanie du Seigneur, le Jour des Rois."
+    },
+}
+
+nik_msg = {
+    "ES": "feliz día de San Nicolás!",
+    "EN": "happy Saint Nicholas Day!",
+    "DE": "einen schönen Nikolaustag!",
+    "FR": "bonne Fête de Saint-Nicolas!"
+}
+hf_msg = {
+    "EN": f"the Feast of the Holy Family",
+    "ES": f"Día de la Sagrada Familia",
+    "DE": f"das Fest der Heiligen Familie",
+    "FR": f"le Jour de la Sainte Famille"
+}
 
 if nikolaus in celebrations.keys():
     celebrations[nikolaus] = append(append(shorten(celebrations[nikolaus], 1), _and_), nik_msg)
@@ -263,9 +308,10 @@ special_pics = {nikolaus: "nikolaus.json", xmas_eve: "shepherds.json", christmas
 special_pic_days = special_pics.keys()
 
 
-def get_language(lang_index):
-    date_seed = today.year * 1e4 + today.month * 1e2 + today.day
-    seed(date_seed)
+# MAIN FUNCTIONS #
+
+def get_language(lang_index, seed_date):
+    seed(seed_date.year * 1e4 + seed_date.month * 1e2 + seed_date.day)
     shuffle(languages)
 
     return languages[lang_index]
@@ -285,7 +331,6 @@ def setup_conn():
 
 
 def get_client():
-
     assert all((CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)), \
         "All credentials must be set"
 
@@ -293,24 +338,24 @@ def get_client():
                          access_token=ACCESS_KEY, access_token_secret=ACCESS_SECRET)
 
 
-def write_tweet(lang="ES"):
-    weekday = weekdays[today.weekday()]
-    if first_advent <= today < christmas:
-        if today in celeb_days:
-            day_text = [celebrations[today]]
+def write_tweet(day, lang="ES"):
+    weekday = weekdays[day.weekday()]
+    if first_advent <= day < christmas:
+        if day in celeb_days:
+            day_text = [celebrations[day]]
         else:
-            adv_week = (today - first_advent).days // 7 + 1
+            adv_week = (day - first_advent).days // 7 + 1
             day_text = [today_is, weekday, fill_num(advent_week, adv_week)]
-        rem_days = (christmas - today).days
+        rem_days = (christmas - day).days
         return join_message([header] + day_text + [fill_num(remaining, rem_days)], lang)
-    elif today == christmas:
-        return join_message([header, merry_xmas, light, today_is, celebrations[today]], lang)
-    elif today == new_year:
-        return join_message([header, merry_xmas, today_is, celebrations[today]], lang)
-    elif christmas <= today <= epiphany:
-        xmas_d = (today - christmas).days + 1
-        if today in celeb_days:
-            day_text = [celebrations[today]]
+    elif day == christmas:
+        return join_message([header, merry_xmas, light, capitalize(today_is), celebrations[day]], lang)
+    elif day == new_year:
+        return join_message([header, merry_xmas, today_is, celebrations[day]], lang)
+    elif christmas <= day <= epiphany:
+        xmas_d = (day - christmas).days + 1
+        if day in celeb_days:
+            day_text = [celebrations[day]]
         else:
             day_text = [append(weekday, ","), fill_num(xmas_days, xmas_d)]
         return join_message([header, merry_xmas, light, capitalize(today_is)] + day_text, lang)
@@ -318,9 +363,9 @@ def write_tweet(lang="ES"):
         print("Christmas Season is over :(")
 
 
-def get_pic(index, reverse=False):
-    if today in special_pic_days:
-        pic_pool = Path.cwd()/"pics"/special_pics[today]
+def choose_pic(index, day, reverse=False):
+    if day in special_pic_days:
+        pic_pool = Path.cwd()/"pics"/special_pics[day]
     else:
         pic_pool = Path.cwd()/"pics"/"normal.json"
     with open(str(pic_pool), "r") as rf:
@@ -328,10 +373,10 @@ def get_pic(index, reverse=False):
 
     pic_len = len(pic_list)
 
-    seed(year)
+    seed(current_xmas_year())
     shuffle(pic_list)
 
-    pic_index = ((today - first_advent).days * n_lang + index) % pic_len
+    pic_index = ((day - first_advent).days * n_lang + index) % pic_len
     if reverse:
         pic_index = pic_len - 1 - pic_index
     return pic_list[pic_index]
@@ -355,24 +400,24 @@ def original_pic_url(pic_url):
         return pic_url
 
 
-def main(lang=None, index=0, reply=False, write=True, source=False):
+def main(day, lang=None, index=0, reply=False, write=True, source=False):
     """
     Command-line entrypoint to post a tweet message to Twitter.
     """
 
     print("The date is:")
-    print(now)
+    print(day)
 
     if lang is None:
-        lang = get_language(index)
+        lang = get_language(index, seed_date=day)
     print(f"Writing tweet in {lang}")
 
-    msg = write_tweet(lang)
+    msg = write_tweet(day, lang)
 
     if msg is None:
         return
 
-    pic_url = get_pic(index, reverse=reply)
+    pic_url = choose_pic(index, day, reverse=reply)
 
     print(f"Tweeting message with {len(msg)} characters:")
     print(msg)
@@ -424,9 +469,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.day is not None:
-        year = dt.now().year
+    if args.day is None:
+        arg_day = dt.now().date()
+    else:
         day_month = dt.strptime(args.day, "%d-%m")
-        today = date(day_month.day, day_month.month)
+        arg_day = date(day_month.day, day_month.month)
 
-    main(lang=args.language, index=args.index, reply=args.reply, write=not args.fake, source=args.source)
+    main(day=arg_day, lang=args.language, index=args.index, reply=args.reply, write=not args.fake, source=args.source)
