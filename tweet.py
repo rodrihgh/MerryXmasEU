@@ -325,8 +325,8 @@ def init_dates(year=None):
         hf_greet = append(append(hf_weekday, ", "), day_messages["holy_family"])
         celebrations[holy_family] = append(append(hf_greet, _and_), hf_day)
 
-    special_pics = {nikolaus: "nikolaus.json", xmas_eve: "shepherds.json", christmas: "shepherds.json",
-                    st_stephen: "st_stephen.json", epiphany_eve: "magi.json", epiphany: "magi.json",
+    special_pics = {nikolaus: "nikolaus.json", st_stephen: "st_stephen.json",
+                    epiphany_eve: "magi.json", epiphany: "magi.json",
                     holy_family: "holy_family.json", innocent: "innocents.json"}
 
 
@@ -384,11 +384,11 @@ def write_tweet(day, lang="ES"):
         print("Christmas Season is over :(")
 
 
-def choose_pic(index, day, reverse=False):
+def choose_pic(index, day, half_shift=False):
     if day in special_pics.keys():
         pic_pool = Path.cwd()/"pics"/special_pics[day]
     else:
-        pic_pool = Path.cwd()/"pics"/"normal.json"
+        pic_pool = Path.cwd()/"pics"/"christmas.json"
     with open(str(pic_pool), "r") as rf:
         pic_list = json.load(rf)
 
@@ -397,10 +397,10 @@ def choose_pic(index, day, reverse=False):
     seed(current_xmas_year(day))
     shuffle(pic_list)
 
-    pic_index = ((day - first_advent).days * n_lang + index) % pic_len
-    if reverse:
-        pic_index = pic_len - 1 - pic_index
-    return pic_list[pic_index]
+    pic_index = (day - first_advent).days * n_lang + index
+    if half_shift:
+        pic_index += pic_len // 2
+    return pic_list[pic_index % pic_len]
 
 
 def download_pic(url):
@@ -438,7 +438,7 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
     if msg is None:
         return
 
-    pic_url = choose_pic(index, day, reverse=reply)
+    pic_url = choose_pic(index, day, half_shift=reply)
 
     print(f"Tweeting message with {len(msg)} characters:")
     print(msg)
