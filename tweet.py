@@ -459,6 +459,7 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
         print(media)
 
         tweet_kwargs = {"media_ids": [media_id]}
+        reply = False # Search timeline seems not to be available for free :(
         if reply:
             user_handle = ue_handles[lang]
             user_id = user_ids[lang]
