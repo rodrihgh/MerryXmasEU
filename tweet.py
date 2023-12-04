@@ -463,7 +463,7 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
             user_handle = ue_handles[lang]
             user_id = user_ids[lang]
             print(f"Replying to @{user_handle} with id {user_id}. Text of their last tweet:")
-            user_tweets = client.get_users_tweets(id=user_id, exclude=["retweets", "replies"], max_results=5)
+            user_tweets = client.get_users_tweets(id=user_id, exclude=["retweets", "replies"], max_results=5, user_auth=True)
             last_tweet = user_tweets.data[0]
             print(last_tweet["text"])
             # ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
