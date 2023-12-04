@@ -458,12 +458,18 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
         print(media)
 
         tweet_kwargs = {"media_ids": [media_id]}
-        reply = False # TODO patch, fix later
         if reply:
-            ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
-            reply_id = ue_statuses[0].id
-            tweet_kwargs["in_reply_to_status_id"] = reply_id
-            tweet_kwargs["auto_populate_reply_metadata"] = False
+            user_handle = ue_handles[lang]
+            user = client.get_user(username=user_handle)
+            user_id = user.data["id"]
+            print(f"Replying to @{user_handle} with id {user_id}. Text of their last tweet:")
+            user_tweets = client.get_users_tweets(id=user_id, exclude=["retweets", "replies"], max_results=5)
+            last_tweet = user_tweets.data[0]
+            print(last_tweet["text"])
+            # ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
+            reply_id = last_tweet["id"] # ue_statuses[0].id
+            tweet_kwargs["in_reply_to_tweet_id"] = reply_id
+            # tweet_kwargs["auto_populate_reply_metadata"] = False
         # tweet = api.update_status(msg, **tweet_kwargs)
         tweet_resp = client.create_tweet(text=msg, **tweet_kwargs)
         print(tweet_resp)
