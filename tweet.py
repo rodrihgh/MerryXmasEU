@@ -105,6 +105,7 @@ def join_message(parts, lang):
 img_source = {"EN": "Image source\n", "ES": "Fuente de la imagen\n", "DE": "Bildquelle\n", "FR": "Source de l'image\n"}
 
 ue_handles = {"EN": "EU_Commission", "ES": "ComisionEuropea", "DE": "EUinDE", "FR": "UEFrance"}
+user_ids = {"EN": "157981564", "ES": "39727960", "DE": "221330045", "FR": "484872080"}
 
 header = {
     "EN": f"Dear @{ue_handles['EN']},",
@@ -460,8 +461,7 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
         tweet_kwargs = {"media_ids": [media_id]}
         if reply:
             user_handle = ue_handles[lang]
-            user = client.get_user(username=user_handle)
-            user_id = user.data["id"]
+            user_id = user_ids[lang]
             print(f"Replying to @{user_handle} with id {user_id}. Text of their last tweet:")
             user_tweets = client.get_users_tweets(id=user_id, exclude=["retweets", "replies"], max_results=5)
             last_tweet = user_tweets.data[0]
