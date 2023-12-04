@@ -465,15 +465,14 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
             tweet_kwargs["in_reply_to_status_id"] = reply_id
             tweet_kwargs["auto_populate_reply_metadata"] = False
         # tweet = api.update_status(msg, **tweet_kwargs)
-        tweet = client.create_tweet(text=msg, **tweet_kwargs)
-        print(tweet)
+        tweet_resp = client.create_tweet(text=msg, **tweet_kwargs)
+        print(tweet_resp)
 
-        source = False # TODO patch fix later
         if source:
             wikimedia_url = original_pic_url(pic_url)
             print("Replying with following image source:\n" + wikimedia_url)
             client.create_tweet(text=img_source[lang] + wikimedia_url,
-                                in_reply_to_tweet_id=tweet.id) # TODO , auto_populate_reply_metadata=True)
+                                in_reply_to_tweet_id=tweet_resp.data["id"]) # TODO , auto_populate_reply_metadata=True)
 
 
 if __name__ == "__main__":
