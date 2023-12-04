@@ -337,7 +337,7 @@ def get_language(lang_index, seed_date):
     return languages[lang_index]
 
 
-def setup_conn():
+def setup_conn_v1():
     """
     Return API connection object.
     """
@@ -350,7 +350,7 @@ def setup_conn():
     return tweepy.API(auth)
 
 
-def get_client():
+def get_client_v2():
     assert all((CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)), \
         "All credentials must be set"
 
@@ -449,8 +449,8 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
     if write:
         pic_fname = download_pic(pic_url)
 
-        api = setup_conn()
-        # client = get_client()
+        api = setup_conn_v1()
+        client = get_client_v2()
 
         print("uploading pic...")
         media = api.simple_upload(pic_fname)
@@ -458,20 +458,22 @@ def main(day, lang=None, index=0, reply=False, write=True, source=False):
         print(media)
 
         tweet_kwargs = {"media_ids": [media_id]}
+        reply = False # TODO patch, fix later
         if reply:
             ue_statuses = api.user_timeline(screen_name=ue_handles[lang], include_rts=False)
             reply_id = ue_statuses[0].id
             tweet_kwargs["in_reply_to_status_id"] = reply_id
             tweet_kwargs["auto_populate_reply_metadata"] = False
-        tweet = api.update_status(msg, **tweet_kwargs)
-        # tweet = client.create_tweet(text=msg)
+        # tweet = api.update_status(msg, **tweet_kwargs)
+        tweet = client.create_tweet(text=msg, **tweet_kwargs)
         print(tweet)
 
+        source = False # TODO patch fix later
         if source:
             wikimedia_url = original_pic_url(pic_url)
             print("Replying with following image source:\n" + wikimedia_url)
-            api.update_status(img_source[lang] + wikimedia_url,
-                              in_reply_to_status_id=tweet.id, auto_populate_reply_metadata=True)
+            client.create_tweet(text=img_source[lang] + wikimedia_url,
+                                in_reply_to_tweet_id=tweet.id) # TODO , auto_populate_reply_metadata=True)
 
 
 if __name__ == "__main__":
